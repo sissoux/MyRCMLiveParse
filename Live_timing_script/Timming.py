@@ -6,14 +6,12 @@ Created on Sat Jan 20 21:29:40 2024
 @author: charlesmerlen
 """
 
-import shutil
-import os
-# import Reference as r
 import json
 import requests
 import time
 import random
 from pathlib import Path
+import re
 
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 9/")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
@@ -43,7 +41,13 @@ while (True):
     #"RC PARK 1/10 TT 4X2 MOD [101] / Série 1 / Qualification 1"    
     print(f"Manche en cours : {round}")
     # RC PARK 1/10 TT 4X2 OPEN  [101]101 :: Qualification :: Série 1 - Heat 1
-    
+    test_str = "RC PARK 1/10 TT 4X2 OPEN  [101]101 :: Qualification :: Série 1 - Heat 1"
+
+    try:
+        catNumber = re.findall(pattern="\[(\d{3})\]", string=round)[0]
+    except IndexError:
+        print("Error parsing category")
+
     positionslash = round.find(" :: ")
     serie = round[positionslash:]
     print(f"Serie en cours : {serie}")
