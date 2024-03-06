@@ -13,12 +13,13 @@ import random
 from pathlib import Path
 import re
 
+serverIP = "192.168.0.176"
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 9/")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 
-jsonFilePath =  Path(LiveBasePath, "Ranking.json")
-htmlFilePath =  Path(LiveBasePath, "Ranking.html")
-roundFilePath =  Path(LiveBasePath, "Round.txt")
+jsonFilePath =      Path(LiveBasePath, "Ranking.json")
+htmlFilePath =      Path(LiveBasePath, "Ranking.html")
+roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 
 LocalOnly = True
@@ -28,7 +29,7 @@ response = '{   "EVENT": {       "CONFIG": {           "MODE": "LapAndTime",    
 while (True):
     try:
         if not LocalOnly:
-            response = requests.get("http://192.168.0.176/1/StreamingData").text
+            response = requests.get(f"http://{serverIP}/1/StreamingData").text
         js = json.loads(response)
     except ConnectionError:
         print("Cannot reach publisher server")
@@ -37,20 +38,14 @@ while (True):
     ''' 
     GESTION DES CATEGORIES
     '''  
-    round = js['EVENT']['METADATA']['SECTION']+js['EVENT']['METADATA']['GROUP']
-    #"RC PARK 1/10 TT 4X2 MOD [101] / Série 1 / Qualification 1"    
-    print(f"Manche en cours : {round}")
-    # RC PARK 1/10 TT 4X2 OPEN  [101]101 :: Qualification :: Série 1 - Heat 1
-    test_str = "RC PARK 1/10 TT 4X2 OPEN  [101]101 :: Qualification :: Série 1 - Heat 1"
+    roundData = js['EVENT']['METADATA']['SECTION']+js['EVENT']['METADATA']['GROUP']
 
     try:
-        catNumber = re.findall(pattern="\[(\d{3})\]", string=round)[0]
+        getCat = re.findall(pattern="\[(\d{3})\].*?::(.*)", string=roundData)
+        catNumber = getCat[0][0]
+        serie = getCat[0][1:][0].replace("::","-")
     except IndexError:
         print("Error parsing category")
-
-    positionslash = round.find(" :: ")
-    serie = round[positionslash:]
-    print(f"Serie en cours : {serie}")
 
     RoundDict = {
         "100" : "4x2 Standard",
@@ -62,51 +57,27 @@ while (True):
         "Online" : "4x0 Test"
                  }
     
-    if "[104]" in round:
-        texte = round
-        round_pretty = "Vintage "
-    elif "[100]" in round:
-        texte = round
-        round_pretty = "4x2 Standard "
-    elif "[101]" in round:
-        texte = round
-        round_pretty = "4x2 Modifié "
-    elif "[102]" in round:
-        texte = round
-        round_pretty = "4x4 Modifié "
-    elif "[105]" in round:
-        texte = round
-        round_pretty = "Rookie "
-    elif "[103]" in round:
-        texte = round
-        round_pretty = "Truck "    
-    elif "[Online]" in round:     
-        texte = round
-        round_pretty = "4x0 Test"     
-    else : 
-        texte = "Manche Non reconnue"
+    try:
+        round_pretty = RoundDict[catNumber]+serie
+    except KeyError:
         round_pretty= "Manche non reconnue"
-        
-    round_pretty = round_pretty + serie.replace("::","")
-    print(round_pretty)
-    
-    
-    
+
+    print(f"Manche en cours : {roundData} ==> {round_pretty}")
     
     '''Gestion du TEMPS Restant'''
 
-    
-    RaceTime = str(js['EVENT']['METADATA'
-                      ]['CURRENTTIME'][3:])+" / "+str(js['EVENT']['METADATA']['RACETIME'][3:])
-    
-    # temps = str(random.randint(1, 5)).zfill(2)+":"+str(random.randint(1,59)).zfill(2)+" / 05:00"
-    
+    RemainingTime = js['EVENT']['METADATA']['CURRENTTIME'][3:]
+    RoundTime = js['EVENT']['METADATA']['RACETIME'][3:]
+    if LocalOnly:
+        RaceTime = f"{random.randint(0,5):02d}:{random.randint(0,9):02d} / 05:00"
+    else:
+        RaceTime = f"{RemainingTime} / {RoundTime}"
+        
     print(RaceTime)
 
     ''' GESTION DU FICHIER Tableau.html '''
     NbPilote = len(js['EVENT']['DATA'])
-    print("Nbre Pilote " + str(NbPilote))
-    #print(js['EVENT']['DATA'][0])
+    print(f"Nbre Pilote {NbPilote}")
     
     pilotes = []
     
@@ -122,7 +93,7 @@ while (True):
 
     entete = '<body><table><thead>'
     entete += '<tr><td colspan="5" id="timming" style="height: 60px;font-size: 50px;font-family: Montserrat;">'+RaceTime+'</td></tr>'
-    entete += '<tr><th></th><th></th><th>Driver</th><th>Lap</th><th>Best</th></tr>'
+    entete += '<tr><th></th><th></th><th>Driver</th><th>Lap</th><th>Besta</th></tr>'
     entete += '</thead><tbody>'
     htmlbody += entete
 
