@@ -44,5 +44,13 @@ class Display:
             self.content[i].value = stringList[i]
 
     def updateDisplay(self):
-        pass
+        if self.serial is not None:
+            data = ''
+            for i,line in enumerate(self.content):
+                data += f"\t{i}:{line.value}"
+            data = bytearray(data+'\n', encoding='ascii')
+        else:
+            raise ConnectionError("Display is not connected.")
+        print(f"sending ==> {data}")
+        
         #Send content data for each line to display.
