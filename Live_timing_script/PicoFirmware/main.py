@@ -1,103 +1,86 @@
-from machine import SPI, Pin
+from machine import Pin
 from time import sleep
 import re
+from neopixel import NeoPixel
+from color import *
+from time import sleep
 
-spi = SPI(0, mosi=Pin(7), sck=Pin(6) , baudrate=400000)           # Create SPI peripheral 0 at frequency of 400kHz.
-                                        # Depending on the use case, extra parameters may be required
-                                        # to select the bus characteristics and/or pins to use.
 
 def validateString(string, target_length):
-    # regex = r"\d{2}[-.']\d{2}[-.']\d{2}[-.']\d{2}"
-    regex = r"[0-9]"
+    # regex = r"\d\d[-.']\d\d[-.']\d\d[-.']\d\d"
+    regex = r"\d\d[-.']"
     return bool(re.match(regex, string)) and len(string) == target_length
 
 
 print("start")
 
+toPrint = "02-"
 
-
-class LED:
-    def __init__(self,R:int,G:int,B:int,id=0):
-        self.r = R
-        self.g = G
-        self.b = B
-
-class Strip:
-    def __init__(self, size:int, interface:SPI, default=LED(0,0,0)):
-        self.LEDs = [LED(default.r, default.g, default.b, x) for x in range(size)]
-        self.size = size
-        self.brightness = 0x01
-    
-    def update(self):
-        buffer = [0,0,0,0] #Start frame
-        for val in range(0,self.size):
-            buffer.append(0xe0+0x08)
-            buffer.append(self.LEDs[val].b)#B
-            buffer.append(self.LEDs[val].g)#B
-            buffer.append(self.LEDs[val].r)#B
-        buffer.append(0xff) #Let enough clock pulses to reach end of strip
-        spi.write(bytearray(buffer))
-        
-    def write(self, id, R,G,B):
-        self.LEDs[id].r = R
-        self.LEDs[id].g = G
-        self.LEDs[id].b = B
-    
-    def setLED(self, id, Led):
-        self.LEDs[id].r = Led.r
-        self.LEDs[id].g = Led.g
-        self.LEDs[id].b = Led.b
-
-toPrint = "1"
-charLen = 1
 ledPerSegment = 2
-NOfLEDs = ledPerSegment*7*charLen
-strip = Strip(NOfLEDs,spi)
-stripStateBuffer = list(range(NOfLEDs))
-char = [0x3f, 0x03, 0x5b, 0x73, 0x65, 0x76, 0x7e, 0x63, 0x7f, 0x77]
-
-color = [LED(0,0,0), LED(0xff,0,0), LED(0, 0xff, 0)]
-
-strip.update()
-
-offset = 0
-
-if validateString(toPrint, charLen):
-    print("filling buffer.")
-    for i,c in enumerate(toPrint):
-        print(f"Char {i}:{c} ==> ", end="")
-        if c =="'":
-            stripStateBuffer[offset:offset+4] = [2,0,0,0]
-            offset+=4
-        elif c =="-":
-            stripStateBuffer[offset:offset+4] = [0,2,2,0]
-            offset+=4
-        elif c ==".":
-            stripStateBuffer[offset:offset+4] = [0,0,0,2]
-            offset+=4
-        else:
-            for j,bit in enumerate(f"{char[int(c)]:07b}"):
-                for led in range(ledPerSegment):
-                    stripStateBuffer[offset+j*ledPerSegment+led] = int(bit)
-                print(bit, end="")
-            offset += 7*ledPerSegment
-        print(f"  {offset}")
-    print(stripStateBuffer)
-    
-    # print(f"length of buffer {len(stripStateBuffer)}, ")
-
-    for i in range(NOfLEDs):
-        # print(f"LED {i} color {color[stripStateBuffer[i]]}")
-        strip.setLED(NOfLEDs-(i+1),color[stripStateBuffer[i]])
+NumberOfDigits = 2
+NumberOfFiller = 1
+FillerLength = 2+ledPerSegment
+Digitlength = 7*ledPerSegment
 
 
-    strip.update()
+NumberOfLEDs = NumberOfDigits*Digitlength+NumberOfFiller*FillerLength
 
-# while True:
-#     number = input("LED to turn red ?")
-#     try:
-#         strip.write(int(number),0xff,0,0)
-#         strip.update()
-#     except ValueError:
-#         print("Enter an 8 Bit integer")
-#     sleep(0.1)
+print(f"{NumberOfDigits=},{NumberOfFiller=},{NumberOfLEDs=}")
+
+ws2812_pin = Pin(0, Pin.OUT)   # set GPIO0 to output to drive NeoPixels
+strip = NeoPixel(ws2812_pin, NumberOfLEDs)   # create NeoPixel driver
+
+# char = [0x3f, 0x03, 0x5b, 0x73, 0x65, 0x76, 0x7e, 0x63, 0x7f, 0x77]♣
+char = [0x7e, 0x18, 0x6d, 0x3d, 0x1b, 0x37, 0x77, 0x1c, 0x7f, 0x3f]
+
+
+strip.fill(colors_d[colors.Black])
+
+strip.write()
+
+stripStateBuffer = [colors.Black for x in range(NumberOfLEDs)] # Init bufferList, needed to 
+
+signColor = colors.Black
+digitColor = colors.Red
+
+for val in range(99):
+    offset = 0
+    toPrint = f"{val:02d}-"
+    print(toPrint)
+    if validateString(toPrint, NumberOfDigits+NumberOfFiller):
+        print("filling buffer.")
+
+        for i,c in enumerate(toPrint):
+            print(f"Char {i}:{c} ==> ")
+            if c =="'":
+                stripStateBuffer[offset:offset+FillerLength] = [signColor,colors.Black,colors.Black,colors.Black]
+                offset+=FillerLength
+            elif c =="-":
+                stripStateBuffer[offset:offset+FillerLength] = [colors.Black,signColor,signColor,colors.Black]
+                offset+=FillerLength
+            elif c ==".":
+                stripStateBuffer[offset:offset+FillerLength] = [colors.Black,colors.Black,colors.Black,signColor]
+                offset+=FillerLength
+            else:
+                for j,bit in enumerate(f"{char[int(c)]:07b}"):
+                    print(int(bit))
+                    for led in range(ledPerSegment):
+                        if bit == '1':
+                            stripStateBuffer[offset+j*ledPerSegment+led] = digitColor
+                        else:
+                            stripStateBuffer[offset+j*ledPerSegment+led] = colors.Black
+                offset += Digitlength
+            # print(f"  {offset}")
+        print(stripStateBuffer)
+        
+        # print(f"length of buffer {len(stripStateBuffer)}, ")
+
+        for i in range(NumberOfLEDs):
+            # print(f"LED {i} color {color[stripStateBuffer[i]]}")
+            strip[i] = colors_d[stripStateBuffer[i]]
+
+        strip.write()
+    else:
+        raise ValueError("String not compatible with display length")
+    sleep(0.25)
+
