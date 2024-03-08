@@ -31,7 +31,7 @@ class Display:
         self.numberOfLines = numberOfLines
         self.Port = Port
         try:
-            self.serial = serial.Serial(self.Port, 115200)
+            self.serial = None #serial.Serial(self.Port, 115200)
         except FileNotFoundError:
             print("Cannot open serial connection")
             self.serial = None
@@ -44,11 +44,12 @@ class Display:
             self.content[i].value = stringList[i]
 
     def updateDisplay(self):
-        if self.serial is not None:
+        if True:#self.serial is not None:
             data = ''
             for i,line in enumerate(self.content):
                 data += f"\t{i}:{line.value}"
             data = bytearray(data+'\n', encoding='ascii')
+            self.serial.write(data)
         else:
             raise ConnectionError("Display is not connected.")
         print(f"sending ==> {data}")
