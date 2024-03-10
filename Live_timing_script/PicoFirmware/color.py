@@ -1,7 +1,7 @@
 class colors:
     Red = "r"
     Green = "g"
-    Blue = "b"
+    Blue = "blu"
     Purple = "p"
     Yellow = "y"
     Cyan = "c"
@@ -11,7 +11,7 @@ class colors:
 colors_d = {
     "r" : (255,0,0),
     "g" : (0,255,0),
-    "b" : (0,0,255),
+    "blu" : (0,0,255),
     "p" : (255,0,255),
     "y" : (255,255,0),
     "c" : (0,255,255),
