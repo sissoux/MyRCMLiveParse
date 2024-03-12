@@ -7,18 +7,19 @@ from time import sleep
 
 
 def validateString(string, target_length):
-    # regex = r"\d\d[-.']\d\d[-.']\d\d[-.']\d\d"
-    regex = r"\d\d[-.']"
+    regex = r"\d\d[-.']\d\d[-.']\d\d[-.']\d\d"
+    #regex = r"\d\d[-.']"
     return bool(re.match(regex, string)) and len(string) == target_length
+
 
 
 print("start")
 
-toPrint = "02-"
+toPrint = "00-00'00-00"
 
 ledPerSegment = 2
-NumberOfDigits = 2
-NumberOfFiller = 1
+NumberOfDigits = 8
+NumberOfFiller = 3
 FillerLength = 2+ledPerSegment
 Digitlength = 7*ledPerSegment
 
@@ -40,25 +41,24 @@ strip.write()
 
 stripStateBuffer = [colors.Black for x in range(NumberOfLEDs)] # Init bufferList, needed to 
 
-signColor = colors.Black
+signColor = colors.Green
 digitColor = colors.Red
 
-for val in range(99):
+def Display(toPrint):
     offset = 0
-    toPrint = f"{val:02d}-"
     print(toPrint)
     if validateString(toPrint, NumberOfDigits+NumberOfFiller):
         print("filling buffer.")
 
         for i,c in enumerate(toPrint):
             print(f"Char {i}:{c} ==> ")
-            if c =="'":
+            if c ==".":
                 stripStateBuffer[offset:offset+FillerLength] = [signColor,colors.Black,colors.Black,colors.Black]
                 offset+=FillerLength
             elif c =="-":
                 stripStateBuffer[offset:offset+FillerLength] = [colors.Black,signColor,signColor,colors.Black]
                 offset+=FillerLength
-            elif c ==".":
+            elif c =="'":
                 stripStateBuffer[offset:offset+FillerLength] = [colors.Black,colors.Black,colors.Black,signColor]
                 offset+=FillerLength
             else:
@@ -82,5 +82,21 @@ for val in range(99):
         strip.write()
     else:
         raise ValueError("String not compatible with display length")
+    
+
+car = 5
+time =21.85
+lap = 1
+
+Display(f"{car:02d}-{time:02.02f}-{lap:02d}")
+
+while True:
     sleep(0.25)
+    ans = input("Waiting")
+    try:
+        Display(ans)
+    except ValueError as e:
+        print(e)
+
+
 
