@@ -2,10 +2,10 @@ import rp2
 from machine import Pin
 
 # Pinout definition
-pin_cs = 1
-pin_sck = 2
-pin_mosi = 4
-pin_miso = 3
+pin_cs = 13
+pin_sck = 10
+pin_mosi = 11
+pin_miso = 12
 
 @rp2.asm_pio()
 def spi_slave():
