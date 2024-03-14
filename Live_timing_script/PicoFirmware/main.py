@@ -4,6 +4,7 @@ import re
 from neopixel import NeoPixel
 from color import *
 from time import sleep
+from json import loads
 #import pio_spi
 #SPI Daisy chain is not wired properly yet. To be tested later.
 
@@ -19,15 +20,15 @@ def flushStrip(strip:NeoPixel):
 
 
 def validateString(string, target_length):
-    regex = r"\d\d[-.']\d\d[-.']\d\d[-.']\d\d"
+    regex = r"[\d_][\d_][-.'][\d_][\d_][-.'][\d_][\d_][-.'][\d_][\d_]"
     #regex = r"\d\d[-.']"
-    return True#bool(re.match(regex, string)) and len(string) == target_length
+    return bool(re.match(regex, string)) and len(string) == target_length
 
 
 
 print("start")
 
-toPrint = "00-00'00-00"
+toPrint = "00-00.00-00"
 
 ledPerSegment = 2
 NumberOfDigits = 8
@@ -46,6 +47,8 @@ ws2812_pin_0 = Pin(13, Pin.OUT)   # set GPIO0 to output to drive NeoPixels
 strip_0 = NeoPixel(ws2812_pin_0, NumberOfLEDs)   # create NeoPixel driver
 strip_1 = NeoPixel(ws2812_pin_1, NumberOfLEDs)   # create NeoPixel driver
 strip_2 = NeoPixel(ws2812_pin_2, NumberOfLEDs)   # create NeoPixel driver
+
+stripList = [strip_0, strip_1, strip_2]
 
 # char = [0x3f, 0x03, 0x5b, 0x73, 0x65, 0x76, 0x7e, 0x63, 0x7f, 0x77]♣
 char = [0x7e, 0x18, 0x6d, 0x3d, 0x1b, 0x37, 0x77, 0x1c, 0x7f, 0x3f]
@@ -104,15 +107,19 @@ car = 5
 time =21.85
 lap = 1
 
-Display(f"{car:02d}-{time:02.02f}-{lap:02d}", strip_0)
-Display(f"81-19.65-10", strip_1)
-Display(f"01-19.65-09", strip_2)
+Display(f"02-00.00-00", strip_0)
+Display(f"01-00.00-00", strip_1)
+Display(f"00-00.00-00", strip_2)
+counter = 0
 
 while True:
-    sleep(0.25)
-    ans = input("Waiting")
+    ans = input("")
     try:
-        Display(ans,strip_0)
+        # js = loads(ans)
+        # print(js)
+        # Display(js["content"],stripList[js["line"]])
+        Display(f"{counter:02d}-00.00-00", strip_1)
+        counter+=1
     except ValueError as e:
         print(e)
 

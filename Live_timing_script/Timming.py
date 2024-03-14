@@ -60,9 +60,6 @@ while (True):
     for pilot in currentRound.pilotList:
         print(f"Pilot {pilot.pilot} is in {pilot.index} position with {pilot.laps} laps in {pilot.absoluttime}s.")
 
-    if enableSevenSegDisplay: 
-        disp.setLines(["01-17.58-10", "03-17.16-10", "08-20.58-09"])
-        disp.updateDisplay()
 
     # Gestion du TEMPS Restant
 
@@ -101,10 +98,10 @@ while (True):
             "Car":pilot.vehicle,
             "PrenomNom":pilot.pilot
             })
-        
-    #     # texte += ""+str(js['EVENT']['DATA'][i]['INDEX']) + ". -" + str(js['EVENT']['DATA'][i]['VEHICLE'])+ "- L"+str(js['EVENT']['DATA'][i]['LAPS'])+" "+js['EVENT']['DATA'][i]['PILOT'].title()+ "\n"
-        texte += f"{pilot.position}. -{pilot.vehicle}- L{pilot.laps}\n"
 
+    if enableSevenSegDisplay: 
+        disp.setLines([f"{pilot.carid:02d}-{pilot.besttime_s:05.2f}-{pilot.laps:02d}" for pilot in currentRound.pilotList[:disp.numberOfLines]])
+        disp.updateDisplay()
     
     htmlbody += '</tbody></table></body>'
     htmlbody += '</html>'

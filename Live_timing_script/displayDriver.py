@@ -1,5 +1,6 @@
 import re
 import serial
+import json
 
 class DisplayLine:
     def __init__(self, id:int, size=11, pattern="\d{2}[-.']\d{2}[-.']\d{2}[-.']\d{2}") -> None:
@@ -31,7 +32,7 @@ class Display:
         self.numberOfLines = numberOfLines
         self.Port = Port
         try:
-            self.serial = None #serial.Serial(self.Port, 115200)
+            self.serial = serial.Serial(self.Port, 115200)
         except FileNotFoundError:
             print("Cannot open serial connection")
             self.serial = None
@@ -44,14 +45,15 @@ class Display:
             self.content[i].value = stringList[i]
 
     def updateDisplay(self):
-        if True:#self.serial is not None:
-            data = ''
+        if self.serial is not None and self.serial.is_open:
+            self.serial.flush()
             for i,line in enumerate(self.content):
-                data += f"\t{i}:{line.value}"
-            data = bytearray(data+'\n', encoding='ascii')
-            self.serial.write(data)
+                data = ''
+                data += str(json.dumps({"line":i, "content":line.value, "color":"Red"}))
+                data = bytearray(data+'\n', encoding='ascii')
+                print(f"sending ==> {data}")
+                self.serial.write(data)
         else:
             raise ConnectionError("Display is not connected.")
-        print(f"sending ==> {data}")
         
         #Send content data for each line to display.
