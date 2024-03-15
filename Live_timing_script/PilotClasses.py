@@ -43,8 +43,8 @@ class Pilot:
             self.mediumtime_s = float(self.mediumtime)
             m, s = map(int, str(self.absoluttime).split(":"))
             self.absoluttime_s = datetime.timedelta(minutes=m, seconds=float(s))
-        except ValueError:
-            print("ParseError")
+        except ValueError as e:
+            print(f"ParseError: {e}")
 
 class Round:
     RoundDict = {
