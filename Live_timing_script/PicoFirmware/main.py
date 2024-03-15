@@ -36,7 +36,7 @@ def validateString(string, target_length):
 
 
 
-print("start")
+# print("start")
 
 toPrint = "00-00.00-00"
 
@@ -76,12 +76,12 @@ digitColor = colors.Red
 
 def Display(toPrint, strip:NeoPixel):
     offset = 0
-    print(toPrint)
+    # print(toPrint)
     if validateString(toPrint, NumberOfDigits+NumberOfFiller):
-        print("filling buffer.")
+        # print("filling buffer.")
 
         for i,c in enumerate(toPrint):
-            print(f"Char {i}:{c} ==> ")
+            # print(f"Char {i}:{c} ==> ")
             if c ==".":
                 stripStateBuffer[offset:offset+FillerLength] = [signColor,colors.Black,colors.Black,colors.Black]
                 offset+=FillerLength
@@ -104,7 +104,7 @@ def Display(toPrint, strip:NeoPixel):
                             stripStateBuffer[offset+j*ledPerSegment+led] = colors.Black
                 offset += Digitlength
             # print(f"  {offset}")
-        print(stripStateBuffer)
+        # print(stripStateBuffer)
         
         # print(f"length of buffer {len(stripStateBuffer)}, ")
 
@@ -123,19 +123,19 @@ Display(f"00-00.00-00", strip_2)
 counter = 0
 
 while True:
-    uart.write(b"ping\n")
+    # uart.write(b"ping\n")
     if uart.any():
         ans = uart.readline()
         print(ans)
         try:
-            # js = loads(ans)
+            js = loads(ans)
             # print(js)
-            # Display(js["content"],stripList[js["line"]])
-            Display(f"{counter:02d}-00.00-00", strip_1)
-            counter+=1
+            Display(js["content"],stripList[js["line"]])
+            # Display(f"{counter:02d}-00.00-00", strip_1)
+            # counter+=1
         except ValueError as e:
             print(e)
-    sleep(0.1)
+    sleep(0.001)
 
 
 
