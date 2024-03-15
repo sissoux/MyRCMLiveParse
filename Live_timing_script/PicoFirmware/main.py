@@ -96,7 +96,7 @@ def Display(toPrint, strip:NeoPixel):
                 offset += Digitlength
             else:
                 for j,bit in enumerate(f"{char[int(c)]:07b}"):
-                    print(int(bit))
+                    # print(int(bit))
                     for led in range(ledPerSegment):
                         if bit == '1':
                             stripStateBuffer[offset+j*ledPerSegment+led] = digitColor
