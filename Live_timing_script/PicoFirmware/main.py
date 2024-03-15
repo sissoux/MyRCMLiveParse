@@ -1,12 +1,22 @@
-from machine import Pin, SPI
+from machine import Pin, SPI, UART
 from time import sleep
 import re
 from neopixel import NeoPixel
 from color import *
 from time import sleep
 from json import loads
+import select
 #import pio_spi
 #SPI Daisy chain is not wired properly yet. To be tested later.
+
+uart = UART(0, baudrate=115200, tx=Pin(16), rx=Pin(17), timeout=100)
+# uart.write('hello')  # write 5 bytes
+# uart.read(5)         # read up to 5 bytes
+# uart.any()
+# serPoll = select.poll()
+# serPoll.register(uart, select.POLLIN)
+# serPoll.poll(100)
+# uart.readline
 
 def refreshStrip(buffer, strip:NeoPixel):
     # Convert colorbuffer to strip bytearray and update strip
@@ -113,15 +123,19 @@ Display(f"00-00.00-00", strip_2)
 counter = 0
 
 while True:
-    ans = input("")
-    try:
-        # js = loads(ans)
-        # print(js)
-        # Display(js["content"],stripList[js["line"]])
-        Display(f"{counter:02d}-00.00-00", strip_1)
-        counter+=1
-    except ValueError as e:
-        print(e)
+    uart.write(b"ping\n")
+    if uart.any():
+        ans = uart.readline()
+        print(ans)
+        try:
+            # js = loads(ans)
+            # print(js)
+            # Display(js["content"],stripList[js["line"]])
+            Display(f"{counter:02d}-00.00-00", strip_1)
+            counter+=1
+        except ValueError as e:
+            print(e)
+    sleep(0.1)
 
 
 
