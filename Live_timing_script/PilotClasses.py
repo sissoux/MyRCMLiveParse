@@ -41,7 +41,8 @@ class Pilot:
             self.besttimen_s = float(self.besttimen)
             self.laptime_s = float(self.laptime)
             self.mediumtime_s = float(self.mediumtime)
-            m, s = map(int, str(self.absoluttime).split(":"))
+            m, s = map(float, str(self.absoluttime).split(":"))
+            s = int(s)
             self.absoluttime_s = datetime.timedelta(minutes=m, seconds=float(s))
         except ValueError as e:
             print(f"ParseError: {e}")
@@ -74,7 +75,7 @@ class Round:
         self.racetime =         kwargs['METADATA'].get('RACETIME', None)
         self.remainingtime =    kwargs['METADATA'].get('REMAININGTIME', None)
         self.section =          kwargs['METADATA'].get('SECTION', None)
-        self.updateRaceTime(randomize=True)
+        self.updateRaceTime(randomize=False)
         self.updatePilotList(kwargs['DATA'])
         self.parseCategory()
 
@@ -98,15 +99,20 @@ class Round:
             categoryMatch = re.findall(pattern="\[(.*)\].*?::(.*)", string=self.roundData)
             catNumber = categoryMatch[0][0]
             serie = categoryMatch[0][1:][0].replace("::","-")
-            self.round_pretty = self.RoundDict[catNumber]+serie
+            tempserie = serie.split("-")
+            self.round_pretty = f"{self.RoundDict[catNumber]}\n{tempserie[0].strip()}\n{tempserie[1].strip()} - {tempserie[2].strip()}"
         except IndexError:
             print("Error parsing category")
+            self.round_pretty = "Manche non reconnue"
         except KeyError:
             self.round_pretty = "Manche non reconnue"
 
         print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
     
     def updatePilotList(self, data:list):
-        self.numberOfPilots = len(data)
-        for i, pilot in enumerate(data):
-            self.pilotList[i].update(i, **pilot)
+        try:
+            self.numberOfPilots = len(data)
+            for i, pilot in enumerate(data):
+                self.pilotList[i].update(i, **pilot)
+        except IndexError:
+            print("Error updating pilot list.")

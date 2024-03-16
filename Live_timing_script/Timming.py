@@ -98,8 +98,8 @@ while (True):
             "PrenomNom":pilot.pilot
             })
 
-    if enableSevenSegDisplay: 
-        disp.setLines([f"{pilot.carid:02d}-{pilot.besttime_s:05.2f}-{pilot.laps:02d}" for pilot in currentRound.pilotList[:disp.numberOfLines]])
+    if enableSevenSegDisplay and len(currentRound.pilotList)>=disp.numberOfLines: 
+        disp.setLines([f"{pilot.vehicle:02d}-{pilot.besttime_s:05.2f}-{pilot.laps:02d}" for pilot in currentRound.pilotList[:disp.numberOfLines]])
         disp.updateDisplay()
     
     htmlbody += '</tbody></table></body>'
