@@ -54,6 +54,10 @@ class Round:
         "103" : "Truck",
         "104" : "Vintage",
         "105" : "Rookie",
+        "TT10 EL 4x2 STD CF" : "4x2 Standard",
+        "TT10 EL 4x2 MOD CF" : "4x2 Modifié",
+        "TT10 EL 4x4 MOD CF" : "4x4 Modifié",
+        "TT10 EL TR CF" : "Truck",
         "Online" : "4x0 Test"
                  }
     
@@ -91,7 +95,7 @@ class Round:
     def parseCategory(self):
         self.roundData = f"{self.section}{self.group}"
         try:
-            categoryMatch = re.findall(pattern="\[(\d{3})\].*?::(.*)", string=self.roundData)
+            categoryMatch = re.findall(pattern="\[(.*)\].*?::(.*)", string=self.roundData)
             catNumber = categoryMatch[0][0]
             serie = categoryMatch[0][1:][0].replace("::","-")
             self.round_pretty = self.RoundDict[catNumber]+serie
