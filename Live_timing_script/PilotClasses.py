@@ -2,6 +2,7 @@ import re
 import time
 import datetime
 from random import randint
+from pathlib import Path
 
 class Pilot:
     def __init__(self, **kwargs):
@@ -62,6 +63,20 @@ class Round:
         "Online" : "4x0 Test"
                  }
     
+    FileDictionnary = {
+        "TT10 EL 4x2 STD CF" : "Qual-42S-S",
+        "TT10 EL 4x2 MOD CF" : "Qual-42M-S",
+        "TT10 EL 4x4 MOD CF" : "Qual-44M-S",
+        "TT10 EL TR CF" : "Qual-TRK-S"
+    }
+
+    FinaleFileDictionnary={
+        "TT10 EL 4x2 STD CF" : "42S.Final-",
+        "TT10 EL 4x2 MOD CF" : "42M.Final-",
+        "TT10 EL 4x4 MOD CF" : "44M.Final-",
+        "TT10 EL TR CF" : "TRK.Final-"
+    }
+    
     def __init__(self, **kwargs):
         self.pilotList = [Pilot(**pilot) for pilot in kwargs['DATA']]
         self.update(**kwargs)
@@ -101,6 +116,20 @@ class Round:
             serie = categoryMatch[0][1:][0].replace("::","-")
             tempserie = serie.split("-")
             self.round_pretty = f"{self.RoundDict[catNumber]}\n{tempserie[0].strip()}\n{tempserie[1].strip()} - {tempserie[2].strip()}"
+            self.SerieNumber = tempserie[1].strip()[-1]
+
+            if self.SerieNumber.isnumeric():
+                self.picPath = Path("QUALIF_HD", self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                self.bannerPath = Path("QUALIF_HD", "bandeau", "bandeau"+self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                print(self.picPath)
+            else:
+                self.picPath = Path("FINALES_HD", self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                self.bannerPath = Path("FINALES_HD", "bandeau", "bandeau"+self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                print(self.picPath)
+                print(self.bannerPath)
+
+
+
         except IndexError:
             print("Error parsing category")
             self.round_pretty = "Manche non reconnue"

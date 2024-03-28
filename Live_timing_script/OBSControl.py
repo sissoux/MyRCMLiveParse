@@ -3,12 +3,16 @@ import secret
 import time
 import obsws_python as obs
 
-wsHhost = 'localhost'
+wsHhost = '192.168.0.15'
 wsPort = 4455
 wsPW = secret.WebsocketPW
 
 # pass conn info if not in config.toml
-cl = obs.ReqClient(host='localhost', port=4455, password='mystrongpass', timeout=3)
+OBS = obs.ReqClient(host='localhost', port=4455, password=wsPW, timeout=3)
+# resp = cl.get_version()
+# print(f"OBS Version: {resp.obs_version}")
+OBS.set_current_program_scene("Table")
+
 # OBS_client = obsws(host=wsHhost, port=wsPort, password=wsPW)
 
 # cl.get

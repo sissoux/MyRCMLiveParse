@@ -13,6 +13,14 @@ import random
 from pathlib import Path
 from PilotClasses import Pilot, Round
 import re
+import shutil
+import secret
+import obsws_python as obs
+
+wsHhost = '192.168.0.15'
+wsPort = 4455
+wsPW = secret.WebsocketPW
+OBS = obs.ReqClient(host='localhost', port=4455, password=wsPW, timeout=3)
 
 serverIP = "192.168.0.176"
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 10/")
@@ -32,11 +40,51 @@ if enableSevenSegDisplay:
 
 response = '{   "EVENT": {       "CONFIG": {           "MODE": "LapAndTime",           "NROFBESTLAPS": 0       },       "DATA": [           {               "ABSOLUTTIME": "04:21.095",               "BESTTIME": "19.212",               "BESTTIMEN": "0.000",               "CARID": 0,               "CLUB": "BRCA",               "COLOR": 2,               "COUNTRY": "FRA",               "DELAYTIMEFIRST": "0.000",               "DELAYTIMEPREVIOUS": "0.000",               "FORECAST": "15 05:03.003",               "INDEX": 1,               "LAPINFO": "",               "LAPS": 13,               "LAPTIME": "20.030",               "MEDIUMTIME": "20.084",               "PILOT": "Boda Clément",               "PILOTNUMBER": 0,               "PROGRESS": 0,               "SPEED": "27,14",               "STANDARDDEVIATION": "1.077",               "TEMPERATUR": "20 °C",               "TRANSPONDER": "9666194",               "TREND": 1,               "VEHICLE": 1,               "VOLTAGE": "5,7 V"           },           {               "ABSOLUTTIME": "04:17.567",               "BESTTIME": "19.351",               "BESTTIMEN": "0.000",               "CARID": 0,               "CLUB": "880",               "COLOR": 7,               "COUNTRY": "FRA",               "DELAYTIMEFIRST": "-1",               "DELAYTIMEPREVIOUS": "-1",               "FORECAST": "14 05:01.595",               "INDEX": 2,               "LAPINFO": "",               "LAPS": 12,               "LAPTIME": "25.779",               "MEDIUMTIME": "21.463",               "PILOT": "Vandenberghe Davidddddddddddddddddd",               "PILOTNUMBER": 0,               "PROGRESS": 6,               "SPEED": "21,09",               "STANDARDDEVIATION": "2.115",               "TEMPERATUR": "12 °C",               "TRANSPONDER": "2857229",               "TREND": -1,               "VEHICLE": 2,               "VOLTAGE": "5,7 V"           },           {               "ABSOLUTTIME": "03:57.002",               "BESTTIME": "19.640",               "BESTTIMEN": "0.000",               "CARID": 0,               "CLUB": "",               "COLOR": 1,               "COUNTRY": "FRA",               "DELAYTIMEFIRST": "-2",               "DELAYTIMEPREVIOUS": "-1",               "FORECAST": "14 05:03.731",               "INDEX": 3,               "LAPINFO": "",               "LAPS": 11,               "LAPTIME": "24.766",               "MEDIUMTIME": "21.545",               "PILOT": "Tony RC",               "PILOTNUMBER": 0,               "PROGRESS": 90,               "SPEED": "21,95",               "STANDARDDEVIATION": "2.369",               "TEMPERATUR": "20 °C",               "TRANSPONDER": "2398220",               "TREND": -1,               "VEHICLE": 4,               "VOLTAGE": "6,9 V"           },           {               "ABSOLUTTIME": "04:06.838",               "BESTTIME": "20.852",               "BESTTIMEN": "0.000",               "CARID": 0,               "CLUB": "",               "COLOR": 7,               "COUNTRY": "FRA",               "DELAYTIMEFIRST": "-2",               "DELAYTIMEPREVIOUS": "+9.836",               "FORECAST": "14 05:14.092",               "INDEX": 4,               "LAPINFO": "",               "LAPS": 11,               "LAPTIME": "21.173",               "MEDIUMTIME": "22.439",               "PILOT": "Clarhaut Vincnnnnnnnnnnnnnnnnnent",               "PILOTNUMBER": 0,               "PROGRESS": 51,               "SPEED": "25,67",               "STANDARDDEVIATION": "1.954",               "TEMPERATUR": "11 °C",               "TRANSPONDER": "8926221",               "TREND": 1,               "VEHICLE": 3,               "VOLTAGE": "7,1 V"           },           {               "ABSOLUTTIME": "04:08.981",               "BESTTIME": "22.157",               "BESTTIMEN": "0.000",               "CARID": 0,               "CLUB": "1176",               "COLOR": 7,               "COUNTRY": "FRA",               "DELAYTIMEFIRST": "-3",               "DELAYTIMEPREVIOUS": "-1",               "FORECAST": "13 05:24.275",               "INDEX": 5,               "LAPINFO": "",               "LAPS": 10,               "LAPTIME": "23.243",               "MEDIUMTIME": "24.898",               "PILOT": "domis fabien",               "PILOTNUMBER": 0,               "PROGRESS": 20,               "SPEED": "23,39",               "STANDARDDEVIATION": "2.735",               "TEMPERATUR": "15 °C",               "TRANSPONDER": "3567179",               "TREND": 1,               "VEHICLE": 6,               "VOLTAGE": "5,8 V"           },           {               "ABSOLUTTIME": "03:45.304",               "BESTTIME": "25.920",               "BESTTIMEN": "0.000",               "CARID": 0,               "CLUB": "Rc park",               "COLOR": 1,               "COUNTRY": "BEL",               "DELAYTIMEFIRST": "-5",               "DELAYTIMEPREVIOUS": "-2",               "FORECAST": "10 05:08.071",               "INDEX": 6,               "LAPINFO": "",               "LAPS": 8,               "LAPTIME": "27.370",               "MEDIUMTIME": "28.163",               "PILOT": "BILLE eddy",               "PILOTNUMBER": 0,               "PROGRESS": 100,               "SPEED": "19,86",               "STANDARDDEVIATION": "2.555",               "TEMPERATUR": "6 °C",               "TRANSPONDER": "3830740",               "TREND": -1,               "VEHICLE": 5,               "VOLTAGE": "6,0 V"           }       ],       "KEY": "B18D6AD15E176B658F02",       "METADATA": {           "COUNTDOWN": "00:00:00",           "CURRENTTIME": "00:04:14",           "DIVERGENCE": "00:00:00",           "GROUP": "101 :: Qualification :: Série 1 - Heat 1",           "NAME": "TONY RC MEETING",           "RACETIME": "00:05:00",           "REMAININGTIME": "00:00:46",           "SECTION": "RC PARK 1/10 TT 4X2 OPEN  [101]"       },       "TIMESTAMP": "1345831324",       "VERSION": "1.0"   }}'
 
-newRound = True
+newRound = False
 
 PreviousGroup = None
 
+sceneList = ["Podium", "Comptage", "Table"]
+previousTime = time.time()
+sceneDelay = 0
+init = True
+preventPodium = False
+
+def updateScene(preventPodium=False):
+    SceneID = random.randint(1*preventPodium,2)
+    try:
+        OBS.set_current_program_scene(sceneList[SceneID])
+    except:
+        print("Failed switching scene")
+    if SceneID == 0:
+        Delay = random.randint(2,6)
+    else:
+        Delay = random.randint(30,75)
+    return Delay
+
 while (True):
+
+    if newRound:
+        if not init:
+            try:
+                newRound = False
+                sceneDelay = 0
+                print("Displaying Serie")
+                OBS.set_current_program_scene("SerieDisplay")
+                time.sleep(15)
+                preventPodium = True
+            except:
+                print("Cannot find the requested picture. Serie not updated.")
+        else:
+            newRound = False
+            init = False
+    else:
+        if time.time() - previousTime > sceneDelay:
+            previousTime = time.time()
+            sceneDelay = updateScene(preventPodium)
+            preventPodium = False
+    print(f"Next scene in {sceneDelay - (time.time()-previousTime)}")
+
     try:
         if not LocalOnly:
             response = requests.get(f"http://{serverIP}/1/StreamingData").text
@@ -51,23 +99,33 @@ while (True):
     if PreviousGroup != currentGroup:
         PreviousGroup = currentGroup
         currentRound = Round(**js['EVENT'])
+        newRound = True
+        try:
+            shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
+            shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
+            if not init:
+                print("detected new round - Podium for 10s")
+                OBS.set_current_program_scene("Podium")
+                time.sleep(10)
+        except:
+            print("Cannot find the requested picture. Serie not updated.")
     else:
         currentRound.update(**js['EVENT'])
 
+
+
     print(currentRound.getRaceTime_pretty())
 
-    for pilot in currentRound.pilotList:
-        print(f"Pilot {pilot.pilot} is in {pilot.index} position with {pilot.laps} laps in {pilot.absoluttime}s ==> Best lap {pilot.besttime}")
+    # for pilot in currentRound.pilotList:
+        # print(f"Pilot {pilot.pilot} is in {pilot.index} position with {pilot.laps} laps in {pilot.absoluttime}s ==> Best lap {pilot.besttime}")
 
 
     # Gestion du TEMPS Restant
 
     RaceTime = currentRound.getRaceTime_pretty()
-        
-    print(RaceTime)
 
     ''' GESTION DU FICHIER Tableau.html '''
-    print(f"Nbre Pilote {currentRound.numberOfPilots}")
+    # print(f"Nbre Pilote {currentRound.numberOfPilots}")
     
     pilotes = []
     
@@ -89,7 +147,7 @@ while (True):
 
     for pilot in currentRound.pilotList:
         # print(f"Pilot {pilot.pilot} is in {pilot.position}")
-        htmlpilot = f"<tr><td>{pilot.position}</td><td>{pilot.vehicle}</td><td>{pilot.pilot.upper()}</td><td>{pilot.laps}</td><td>{pilot.besttime_s:0.3f}</td></tr>"
+        htmlpilot = f"<tr><td>{pilot.position+1}</td><td>{pilot.vehicle}</td><td>{pilot.pilot.upper()}</td><td>{pilot.laps}</td><td>{pilot.besttime_s:0.3f}</td></tr>"
         htmlbody += htmlpilot
 
         pilotes.append({
