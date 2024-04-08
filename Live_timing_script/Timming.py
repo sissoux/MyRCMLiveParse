@@ -16,11 +16,16 @@ import re
 import shutil
 import secret
 import obsws_python as obs
+from OBSAutomate import OBS_Auto
 
-wsHhost = '192.168.0.15'
-wsPort = 4455
-wsPW = secret.WebsocketPW
-OBS = obs.ReqClient(host='localhost', port=4455, password=wsPW, timeout=3)
+
+
+LocalOnly = False
+AutomateOBS = False
+
+if AutomateOBS:
+    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW)
+    
 
 serverIP = "192.168.0.176"
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 10/")
@@ -31,7 +36,6 @@ htmlFilePath =      Path(LiveBasePath, "Ranking.html")
 roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 
-LocalOnly = False
 
 enableSevenSegDisplay = False
 if enableSevenSegDisplay:
@@ -44,23 +48,6 @@ newRound = False
 
 PreviousGroup = None
 
-sceneList = ["Podium", "Comptage", "Table"]
-previousTime = time.time()
-sceneDelay = 0
-init = True
-preventPodium = False
-
-def updateScene(preventPodium=False):
-    SceneID = random.randint(1*preventPodium,2)
-    try:
-        OBS.set_current_program_scene(sceneList[SceneID])
-    except:
-        print("Failed switching scene")
-    if SceneID == 0:
-        Delay = random.randint(2,6)
-    else:
-        Delay = random.randint(30,75)
-    return Delay
 
 while (True):
 
@@ -70,7 +57,8 @@ while (True):
                 newRound = False
                 sceneDelay = 0
                 print("Displaying Serie")
-                OBS.set_current_program_scene("SerieDisplay")
+                if AutomateOBS:
+                    OBS.set_current_program_scene("SerieDisplay")
                 time.sleep(15)
                 preventPodium = True
             except:

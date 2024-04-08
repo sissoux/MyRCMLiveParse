@@ -3,6 +3,25 @@ import time
 import datetime
 from random import randint
 from pathlib import Path
+from enum import StrEnum
+
+class Teams():
+    class Names(StrEnum):
+        rocket = "Rocket"
+        aliExpress = "Team Ali Express"
+        cingles = "Les Cinglés"
+        tiBolid = "TI'BOLID Revival"
+        diabolo = "Team DIA BOLO"
+
+    TeamDict = {
+        "4813580" : Names.rocket,
+        "1056266" : Names.aliExpress,
+        "8682086" : Names.cingles,
+        "2567134" : Names.tiBolid,
+        "3109958" : Names.diabolo   
+    }
+    # Best / avg / laps / pace on 5 min / logo / photo voiture / pace 1h / forecast / avg pit stop time
+
 
 class Pilot:
     def __init__(self, **kwargs):

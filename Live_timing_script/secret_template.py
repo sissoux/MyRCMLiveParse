@@ -1,1 +1,2 @@
-WebsocketPW=""
+OBSWebSocketPW=""
+PublisherWebSocketPW=""
