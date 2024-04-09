@@ -30,7 +30,7 @@ def flushStrip(strip:NeoPixel):
 
 
 def validateString(string, target_length):
-    regex = r"[\d_][\d_][-.'][\d_][\d_][-.'][\d_][\d_][-.'][\d_][\d_]"
+    regex = r"[\d_][\d_][-.'][\d_][\d_][-.'][\d_][\d_][-.'][\d_][\d_][\d_][\d_]"
     #regex = r"\d\d[-.']"
     return bool(re.match(regex, string)) and len(string) == target_length
 
@@ -38,10 +38,10 @@ def validateString(string, target_length):
 
 # print("start")
 
-toPrint = "00-00.00-00"
+toPrint = "00-00.00-0000"
 
 ledPerSegment = 2
-NumberOfDigits = 8
+NumberOfDigits = 10
 NumberOfFiller = 3
 FillerLength = 2+ledPerSegment
 Digitlength = 7*ledPerSegment
@@ -70,11 +70,11 @@ flushStrip(strip_2)
 
 stripStateBuffer = [colors.Black for x in range(NumberOfLEDs)] # Init bufferList, needed to 
 
-signColor = colors.Green
-digitColor = colors.Red
+# signColor = colors.Green
+# digitColor = colors.Red
 
 
-def Display(toPrint, strip:NeoPixel):
+def Display(toPrint, strip:NeoPixel, signColor = colors.Green, digitColor = colors.Red):
     offset = 0
     # print(toPrint)
     if validateString(toPrint, NumberOfDigits+NumberOfFiller):
@@ -117,23 +117,24 @@ car = 5
 time =21.85
 lap = 1
 
-Display(f"02-00.00-00", strip_0)
-Display(f"01-00.00-00", strip_1)
-Display(f"00-00.00-00", strip_2)
+Display(f"00-00.00-0000", strip_0)
+Display(f"01-00.00-0000", strip_1)
+Display(f"02-00.00-0000", strip_2)
 counter = 0
 
 while True:
-    # uart.write(b"ping\n")
     if uart.any():
         ans = uart.readline()
         print(ans)
         try:
             js = loads(ans)
-            # print(js)
-            Display(js["content"],stripList[js["line"]])
-            # Display(f"{counter:02d}-00.00-00", strip_1)
-            # counter+=1
+            if "color" in js:
+                Display(js["content"],stripList[js["line"]], digitColor=js["color"])
+            else:
+                Display(js["content"],stripList[js["line"]])
         except ValueError as e:
+            print(e)
+        except KeyError as e:
             print(e)
     sleep(0.001)
 
