@@ -20,11 +20,12 @@ from OBSAutomate import OBS_Auto
 
 
 
-LocalOnly = False
-AutomateOBS = False
+LocalOnly = True
+AutomateOBS = True
+enableSevenSegDisplay = False
 
 if AutomateOBS:
-    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW)
+    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=True)
     
 
 serverIP = "192.168.0.176"
@@ -37,7 +38,6 @@ roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 
 
-enableSevenSegDisplay = False
 if enableSevenSegDisplay:
     from displayDriver import Display
     disp = Display(numberOfLines=3, Port="/dev/ttyS0")
@@ -51,28 +51,8 @@ PreviousGroup = None
 
 while (True):
 
-    if newRound:
-        if not init:
-            try:
-                newRound = False
-                sceneDelay = 0
-                print("Displaying Serie")
-                if AutomateOBS:
-                    OBS.set_current_program_scene("SerieDisplay")
-                time.sleep(15)
-                preventPodium = True
-            except:
-                print("Cannot find the requested picture. Serie not updated.")
-        else:
-            newRound = False
-            init = False
-    else:
-        if time.time() - previousTime > sceneDelay:
-            previousTime = time.time()
-            sceneDelay = updateScene(preventPodium)
-            preventPodium = False
-    print(f"Next scene in {sceneDelay - (time.time()-previousTime)}")
-
+    if AutomateOBS:
+        OBS.updateScene()
     try:
         if not LocalOnly:
             response = requests.get(f"http://{serverIP}/1/StreamingData").text
@@ -91,10 +71,6 @@ while (True):
         try:
             shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
             shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
-            if not init:
-                print("detected new round - Podium for 10s")
-                OBS.set_current_program_scene("Podium")
-                time.sleep(10)
         except:
             print("Cannot find the requested picture. Serie not updated.")
     else:
@@ -102,7 +78,7 @@ while (True):
 
 
 
-    print(currentRound.getRaceTime_pretty())
+    # print(currentRound.getRaceTime_pretty())
 
     # for pilot in currentRound.pilotList:
         # print(f"Pilot {pilot.pilot} is in {pilot.index} position with {pilot.laps} laps in {pilot.absoluttime}s ==> Best lap {pilot.besttime}")
@@ -178,4 +154,4 @@ while (True):
     except PermissionError as e:
         print(f"Permission error while writing files.\n{e}")
 
-    time.sleep(1)
+    time.sleep(0.25)
