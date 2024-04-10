@@ -109,6 +109,7 @@ class Round:
         self.racetime =         kwargs['METADATA'].get('RACETIME', None)
         self.remainingtime =    kwargs['METADATA'].get('REMAININGTIME', None)
         self.section =          kwargs['METADATA'].get('SECTION', None)
+        self.verbose = False
         self.updateRaceTime(randomize=False)
         self.updatePilotList(kwargs['DATA'])
         self.parseCategory()
@@ -154,8 +155,8 @@ class Round:
             self.round_pretty = "Manche non reconnue"
         except KeyError:
             self.round_pretty = "Manche non reconnue"
-
-        print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
+        if self.verbose:
+            print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
     
     def updatePilotList(self, data:list):
         try:
