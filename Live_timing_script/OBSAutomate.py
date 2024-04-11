@@ -53,22 +53,25 @@ class OBS_Auto():
             print("Failed switching scene")
 
 
-    def updateScene(self, ForceScene=None):
+    def updateScene(self, ForceScene=None, ForceDuration=30):
         if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None):
             self.previousTime = time.time()
             if self.verbose:
                 print(f"Switching from {self.fromScene.name}", end='')
             if ForceScene is not None:
                 self.toScene = ForceScene
+                self.previousTime = time.time()
+                self.AutoSwitchDelay=ForceDuration
             else:
                 self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
+                self.AutoSwitchDelay = self.toScene.getDelay()
             self.fromScene = self.toScene
+
             if not self.debug:
                 self.setScene(self.toScene)
-            self.AutoSwitchDelay = self.toScene.getDelay()
 
             if self.verbose:
                 print(f" to {self.toScene.name}. Next switch in {self.AutoSwitchDelay}s.")
 
-    def showStatistics(self, duration):
-        self.updateScene(ForceScene=self.SceneList["StatisticsDisplay"])
+    def showStatistics(self, ForceDuration=30):
+        self.updateScene(ForceScene=self.SceneList["StatisticsDisplay"], ForceDuration=ForceDuration)

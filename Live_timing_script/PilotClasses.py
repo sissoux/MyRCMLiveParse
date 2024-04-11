@@ -22,6 +22,7 @@ class Teams():
         "2567134" : Names.tiBolid,
         "3109958" : Names.diabolo   
     }
+    
     # Best / avg / laps / pace on 5 min / logo / photo voiture / pace 1h / forecast / avg pit stop time
 
 

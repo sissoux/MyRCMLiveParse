@@ -34,14 +34,17 @@ if AutomateOBS:
     
 
 PublisherServer_IP = "192.168.0.176"
-LiveBasePath = Path("C:/RCPARK_Live/Live Course 10/")
+LiveBasePath = Path("C:/RCPARK_Live/Live Endurance/")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 
 jsonFilePath =      Path(LiveBasePath, "Ranking.json")
 htmlFilePath =      Path(LiveBasePath, "Ranking.html")
+htmlTableFilePath = Path(LiveBasePath, "Table.html")
 roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
+TeamLogoPath = Path(LiveBasePath, "LogoTeam")
 
+shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 
 if enableSevenSegDisplay:
     from displayDriver import Display
@@ -101,11 +104,13 @@ while (True):
     pilotes = []
     
     texte = ""
-
+    
     htmlbody = generateHTML.getHeader(RaceTime)
+    tabhtmlbody = generateHTML.getHeaderTable(RaceTime)
 
     for pilot in currentRound.pilotList:
-        htmlbody += generateHTML.getPilotTable(pilot)
+        htmlbody += generateHTML.getPilot(pilot, TeamLogoPath)
+        tabhtmlbody += generateHTML.getPilotTable(pilot, TeamLogoPath)
 
         pilotes.append({
             "Pos":pilot.position,
@@ -132,6 +137,9 @@ while (True):
         #Save HTML file
         with open(htmlFilePath,'w', encoding='utf-8') as file: 
             file.write(htmlbody)
+        #Save HTML file
+        with open(htmlTableFilePath,'w', encoding='utf-8') as file: 
+            file.write(tabhtmlbody)
         
         #save pilots file
         with open(jsonFilePath,'w', encoding='utf-8') as file: 
