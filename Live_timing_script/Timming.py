@@ -23,7 +23,7 @@ import generateHTML
 
 
 LocalOnly = True
-AutomateOBS = True
+AutomateOBS = False
 enableSevenSegDisplay = False
 StatisticDisplayPeriod = 15 * 60 #s
 
@@ -104,7 +104,7 @@ while (True):
     pilotes = []
     
     texte = ""
-    
+
     htmlbody = generateHTML.getHeader(RaceTime)
     tabhtmlbody = generateHTML.getHeaderTable(RaceTime)
 
