@@ -27,7 +27,7 @@ AutomateOBS = False
 enableSevenSegDisplay = False
 StatisticDisplayPeriod = 15 * 60 #s
 
-ReloadDataframe = False
+ReloadDataframe = True
 
 if AutomateOBS:
     OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=True)
@@ -42,7 +42,7 @@ htmlFilePath =      Path(LiveBasePath, "Ranking.html")
 htmlTableFilePath = Path(LiveBasePath, "Table.html")
 roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
-TeamLogoPath = Path(LiveBasePath, "LogoTeam")
+TeamLogoPath =      Path(LiveBasePath, "LogoTeam")
 
 shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 
@@ -54,11 +54,6 @@ response = '{   "EVENT": {       "CONFIG": {           "MODE": "LapAndTime",    
 
 newRound = False
 PreviousGroup = None
-PreviousRound = None
-currentRound = None
-CurrentPilotDict = None
-
-PilotDataFrameDict = dict()
 
 while (True):
 
@@ -79,12 +74,14 @@ while (True):
     if PreviousGroup != currentGroup:
         PreviousGroup = currentGroup
         currentRound = Round(**js['EVENT'])
+        if ReloadDataframe:
+            currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
         try:
             shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
             shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
         except:
-            print("Cannot find the requested picture. Serie not updated.")
+            print("Cannot find the requested picture. Serie picture not updated.")
     else:
         newRound = False
         currentRound.update(**js['EVENT'])

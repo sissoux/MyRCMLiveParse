@@ -22,7 +22,7 @@ class Teams():
         "2567134" : Names.tiBolid,
         "3109958" : Names.diabolo   
     }
-    
+
     # Best / avg / laps / pace on 5 min / logo / photo voiture / pace 1h / forecast / avg pit stop time
 
 
@@ -157,7 +157,13 @@ class Round:
                     self.CurrentPilotDict[pilotKey].pace_5m = self.getPace(pilotKey, period="40s", valueCol="LAPS", timeCol="RACETIME")
                     self.CurrentPilotDict[pilotKey].pace_1h = self.getPace(pilotKey, period="1h", valueCol="LAPS", timeCol="RACETIME")
                 # print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
-
+    
+    def ReloadDataFramesFromFile(self, BasePath):
+        for pilot in self.pilotList:
+            try:
+                df = pd.read_csv(Path(BasePath, pilot.pilot+".csv"))
+            except FileNotFoundError:
+                print(f"Failed to reload from file for {pilot.pilot}. Fresh start.")
         
     def getPace(self, pilotkey, period, timeCol="RaceTime_s", valueCol="Laps"):
         try:
