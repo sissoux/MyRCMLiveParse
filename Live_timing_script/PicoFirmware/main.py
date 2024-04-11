@@ -117,9 +117,9 @@ car = 5
 time =21.85
 lap = 1
 
-Display(f"00-00.00-0000", strip_0)
-Display(f"01-00.00-0000", strip_1)
-Display(f"02-00.00-0000", strip_2)
+Display(f"00-00.00-0088", strip_0)
+Display(f"01-00.00-0088", strip_1)
+Display(f"02-00.00-0088", strip_2)
 counter = 0
 
 while True:
