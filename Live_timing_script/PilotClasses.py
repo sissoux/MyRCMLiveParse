@@ -55,6 +55,8 @@ class Pilot:
         self.vehicle =          kwargs.get('VEHICLE', None)
         self.voltage =          kwargs.get('VOLTAGE', None)
         self.position = position
+        self.pace_5m = 0
+        self.pace_1h = 0
         self.updateTime()
 
     def fillDataFrame(self, inputdf=None)->pd.DataFrame:
