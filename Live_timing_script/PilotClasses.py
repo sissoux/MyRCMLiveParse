@@ -4,6 +4,8 @@ import datetime
 from random import randint
 from pathlib import Path
 from enum import StrEnum
+import pandas as pd
+from copy import deepcopy
 
 class Teams():
     class Names(StrEnum):
@@ -54,6 +56,39 @@ class Pilot:
         self.voltage =          kwargs.get('VOLTAGE', None)
         self.position = position
         self.updateTime()
+
+    def fillDataFrame(self, inputdf=None)->pd.DataFrame:
+        df = pd.DataFrame({
+                            'ABSOLUTTIME'       :self.absoluttime,
+                            'BESTTIME'          :self.besttime,
+                            'BESTTIMEN'         :self.besttimen,
+                            'LAPS'              :self.laps,
+                            'LAPTIME'           :self.laptime,
+                            'MEDIUMTIME'        :self.mediumtime,
+                            'PILOT'             :self.pilot,
+                            'PILOTNUMBER'       :self.pilotnumber,
+                            'FORECAST'          :self.forecast,
+                            'PROGRESS'          :self.progress,
+                            'STANDARDDEVIATION' :self.standarddeviation,
+                            'TRANSPONDER'       :self.transponder,
+                            'VEHICLE'           :self.vehicle,
+                            'TEMPERATUR'        :self.temperature
+                        }, index=[0]) 
+        if inputdf is not None:
+            return pd.concat([inputdf, df])
+        else:
+            return df
+        
+    # def getPace(self, period, timeCol="RaceTime_s", valueCol="Laps"):
+    #     try:
+    #         for d in .rolling(window=period, on=timeCol, min_periods=1):
+    #             pass
+    #         return d[valueCol].iloc[-1] - d[valueCol].iloc[0]
+    #     except ValueError as e:
+    #         print(f"Failed getting Pace: {e}")
+    #     except KeyError as e:
+    #         print(f"Failed getting Pace: {e}")
+    #     return 0
     
     def updateTime(self):
         try:
@@ -98,6 +133,9 @@ class Round:
     
     def __init__(self, **kwargs):
         self.pilotList = [Pilot(**pilot) for pilot in kwargs['DATA']]
+        self.PilotDataFrameDict = {pilot.pilot:pd.DataFrame() for pilot in self.pilotList}
+        self.CurrentPilotDict = None
+        self.NewLap = []
         self.update(**kwargs)
         
     def update(self, **kwargs):
@@ -113,6 +151,16 @@ class Round:
         self.updateRaceTime(randomize=False)
         self.updatePilotList(kwargs['DATA'])
         self.parseCategory()
+        self.PreviousPilotDict = deepcopy(self.CurrentPilotDict)
+        self.CurrentPilotDict = {pilot.pilot:pilot for pilot in self.pilotList}
+        if self.PreviousPilotDict is not None:
+            for pilotKey in self.CurrentPilotDict:
+                if True:#self.PreviousPilotDict[pilotKey].laps != self.CurrentPilotDict[pilotKey].laps:
+                    self.NewLap.append(pilotKey)
+                    print(f"Detected new lap for {pilotKey}, Adding data into dataframe")
+                    self.PilotDataFrameDict[pilotKey] = self.CurrentPilotDict[pilotKey].fillDataFrame(inputdf=self.PilotDataFrameDict[pilotKey])
+                print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
+
 
     def updateRaceTime(self, randomize=False):
         h, m, s = map(int, str(self.racetime).split(":"))
