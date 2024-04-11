@@ -65,7 +65,7 @@ class OBS_Auto():
             self.fromScene = self.toScene
             if not self.debug:
                 self.setScene(self.toScene)
-            self.AutoSwitchDelay = self.toScene.getDelay()/10
+            self.AutoSwitchDelay = self.toScene.getDelay()
 
             if self.verbose:
                 print(f" to {self.toScene.name}. Next switch in {self.AutoSwitchDelay}s.")

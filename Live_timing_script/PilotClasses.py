@@ -59,7 +59,7 @@ class Pilot:
         self.pace_1h = 0
         self.updateTime()
 
-    def fillDataFrame(self, inputdf=None)->pd.DataFrame:
+    def fillDataFrame(self, RaceTime, inputdf=None)->pd.DataFrame:
         df = pd.DataFrame({
                             'ABSOLUTTIME'       :self.absoluttime,
                             'BESTTIME'          :self.besttime,
@@ -74,23 +74,14 @@ class Pilot:
                             'STANDARDDEVIATION' :self.standarddeviation,
                             'TRANSPONDER'       :self.transponder,
                             'VEHICLE'           :self.vehicle,
-                            'TEMPERATUR'        :self.temperature
+                            'TEMPERATUR'        :self.temperature,
+                            'RACETIME'          :RaceTime
                         }, index=[0]) 
         if inputdf is not None:
             return pd.concat([inputdf, df])
         else:
             return df
-        
-    # def getPace(self, period, timeCol="RaceTime_s", valueCol="Laps"):
-    #     try:
-    #         for d in .rolling(window=period, on=timeCol, min_periods=1):
-    #             pass
-    #         return d[valueCol].iloc[-1] - d[valueCol].iloc[0]
-    #     except ValueError as e:
-    #         print(f"Failed getting Pace: {e}")
-    #     except KeyError as e:
-    #         print(f"Failed getting Pace: {e}")
-    #     return 0
+
     
     def updateTime(self):
         try:
@@ -140,7 +131,7 @@ class Round:
         self.NewLap = []
         self.update(**kwargs)
         
-    def update(self, **kwargs):
+    def update(self, bypassLapDetect=False, **kwargs):
         self.countdown =        kwargs['METADATA'].get('COUNTDOWN', None)
         self.currenttime =      kwargs['METADATA'].get('CURRENTTIME', None)
         self.divergence =       kwargs['METADATA'].get('DIVERGENCE', None)
@@ -157,16 +148,31 @@ class Round:
         self.CurrentPilotDict = {pilot.pilot:pilot for pilot in self.pilotList}
         if self.PreviousPilotDict is not None:
             for pilotKey in self.CurrentPilotDict:
-                if True:#self.PreviousPilotDict[pilotKey].laps != self.CurrentPilotDict[pilotKey].laps:
+                if self.PreviousPilotDict[pilotKey].laps != self.CurrentPilotDict[pilotKey].laps or bypassLapDetect:
                     self.NewLap.append(pilotKey)
                     print(f"Detected new lap for {pilotKey}, Adding data into dataframe")
-                    self.PilotDataFrameDict[pilotKey] = self.CurrentPilotDict[pilotKey].fillDataFrame(inputdf=self.PilotDataFrameDict[pilotKey])
-                print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
+                    self.PilotDataFrameDict[pilotKey] = self.CurrentPilotDict[pilotKey].fillDataFrame(inputdf=self.PilotDataFrameDict[pilotKey], RaceTime=self.racetime_s)
+                    # print(self.PilotDataFrameDict[pilotKey])
+                    self.CurrentPilotDict[pilotKey].pace_5m = self.getPace(pilotKey, period="40s", valueCol="LAPS", timeCol="RACETIME")
+                    self.CurrentPilotDict[pilotKey].pace_1h = self.getPace(pilotKey, period="1h", valueCol="LAPS", timeCol="RACETIME")
+                # print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
 
+        
+    def getPace(self, pilotkey, period, timeCol="RaceTime_s", valueCol="Laps"):
+        try:
+            for d in self.PilotDataFrameDict[pilotkey].rolling(window=period, on=timeCol, min_periods=1):
+                pass
+            return d[valueCol].iloc[-1] - d[valueCol].iloc[0]
+        except ValueError as e:
+            print(f"Failed getting Pace: {e}")
+        except KeyError as e:
+            print(f"Failed getting Pace: {e}")
+        return 0
 
     def updateRaceTime(self, randomize=False):
         h, m, s = map(int, str(self.racetime).split(":"))
         self.racetime_s = datetime.timedelta(hours=h, minutes=m, seconds=s)
+        self.racetime_s_float = self.racetime_s.total_seconds()
         h, m, s = map(int, str(self.remainingtime).split(":"))
         self.remainingtime = datetime.timedelta(hours=h, minutes=m, seconds=s) + datetime.timedelta(seconds=randint(1,60))*randomize
         

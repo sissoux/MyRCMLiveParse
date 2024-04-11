@@ -147,4 +147,4 @@ while (True):
     except PermissionError as e:
         print(f"Permission error while writing files.\n{e}")
 
-    time.sleep(0.25)
+    time.sleep(0.5)
