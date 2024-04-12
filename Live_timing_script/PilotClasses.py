@@ -14,13 +14,15 @@ class Teams():
         cingles = "Les Cinglés"
         tiBolid = "TI'BOLID Revival"
         diabolo = "Team DIA BOLO"
+        ghost = "Team Ghost"
 
     TeamDict = {
-        "4813580" : Names.rocket,
-        "1056266" : Names.aliExpress,
-        "8682086" : Names.cingles,
-        "2567134" : Names.tiBolid,
-        "3109958" : Names.diabolo   
+        "1" : Names.rocket,
+        "2" : Names.aliExpress,
+        "3" : Names.cingles,
+        "4" : Names.tiBolid,
+        "5" : Names.diabolo,
+        "6" : Names.ghost
     }
 
     # Best / avg / laps / pace on 5 min / logo / photo voiture / pace 1h / forecast / avg pit stop time
@@ -55,6 +57,7 @@ class Pilot:
         self.trend =            kwargs.get('TREND', None)
         self.vehicle =          kwargs.get('VEHICLE', None)
         self.voltage =          kwargs.get('VOLTAGE', None)
+        self.TeamName = Teams.TeamDict[str(self.vehicle)]
         self.position = position
         self.pace_5m = 0
         self.pace_1h = 0

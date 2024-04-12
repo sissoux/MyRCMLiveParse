@@ -68,7 +68,7 @@ def getPilotTable(pilot:Pilot, baseLogoPath:Path):
         <td>{pilot.position+1}</td>\
         <td>{pilot.vehicle}</td>\
         <td><img class='logo' src='{baseLogoPath}\\{pilot.vehicle}.png'/></td>\
-        <td>{pilot.pilot.upper()}</td>\
+        <td>{pilot.TeamName.upper()}</td>\
         <td>{pilot.laps}</td>\
         <td>{pilot.forecast.split()[0]}</td>\
         <td>{pilot.besttime_s:0.3f}</td>\
@@ -86,7 +86,7 @@ def getPilot(pilot:Pilot, baseLogoPath:Path):
         <td>{pilot.position+1}</td>\
         <td>{pilot.vehicle}</td>\
         <td><img class='logo' src='{baseLogoPath}\\{pilot.vehicle}.png'/></td>\
-        <td>{pilot.pilot.upper()}</td>\
+        <td>{pilot.TeamName.upper()}</td>\
         <td>{pilot.laps}</td>\
         <td>{pilot.forecast}</td>\
         <td>{pilot.besttime_s:0.3f}</td>\
