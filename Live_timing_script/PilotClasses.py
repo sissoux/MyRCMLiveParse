@@ -10,11 +10,11 @@ from copy import deepcopy
 class Teams():
     class Names(StrEnum):
         rocket = "Rocket"
-        aliExpress = "Team Ali Express"
+        aliExpress = "Ali Express"
         cingles = "Les Cinglés"
         tiBolid = "TI'BOLID Revival"
-        diabolo = "Team DIA BOLO"
-        ghost = "Team Ghost"
+        diabolo = "DIA BOLO"
+        ghost = "Ghost"
 
     TeamDict = {
         "1" : Names.rocket,
@@ -30,6 +30,14 @@ class Teams():
 
 class Pilot:
     def __init__(self, **kwargs):
+        self.positionChangeTimer = 0
+        self.newBestTimer = 0
+        self.previousPosition = -1
+        self.previousVehicle = -1
+        self.pace_5m = 0
+        self.pace_1h = 0
+        self.newBestHoldTime = 0
+        self.newPositionHoldTime = 2
         self.update(0, **kwargs)
 
     def update(self, position, **kwargs):
@@ -43,6 +51,7 @@ class Pilot:
         self.delaytimefirst =   kwargs.get('DELAYTIMEFIRST', None)
         self.delaytimeprevious = kwargs.get('DELAYTIMEPREVIOUS', None)
         self.forecast =         kwargs.get('FORECAST', None)
+        self.forecast_short =   self.forecast.split(" ")[0]
         self.index =            kwargs.get('INDEX', None)
         self.laps =             kwargs.get('LAPS', None)
         self.laptime =          kwargs.get('LAPTIME', None)
@@ -57,11 +66,21 @@ class Pilot:
         self.trend =            kwargs.get('TREND', None)
         self.vehicle =          kwargs.get('VEHICLE', None)
         self.voltage =          kwargs.get('VOLTAGE', None)
-        self.TeamName = Teams.TeamDict[str(self.vehicle)]
+        try:
+            self.TeamName = Teams.TeamDict[str(self.vehicle)]
+        except Exception as e:
+            self.TeamName = ""
         self.position = position
-        self.pace_5m = 0
-        self.pace_1h = 0
         self.updateTime()
+
+        # if self.laptime_s==self.besttime_s:
+        #     self.newBestTimer = time.time()
+        self.newBest = self.laptime_s==self.besttime_s#(self.newBestTimer + self.newBestHoldTime) > time.time()
+
+        if self.vehicle != self.previousVehicle :
+            self.positionChangeTimer = time.time()
+        self.previousVehicle = self.vehicle
+        self.newPosition = (self.positionChangeTimer + self.newPositionHoldTime) > time.time()
 
     def fillDataFrame(self, RaceTime, inputdf=None)->pd.DataFrame:
         df = pd.DataFrame({
@@ -90,12 +109,12 @@ class Pilot:
     def updateTime(self):
         try:
             self.besttime_s = float(self.besttime)
-            self.besttimen_s = float(self.besttimen)
+            # self.besttimen_s = float(self.besttimen)
             self.laptime_s = float(self.laptime)
             self.mediumtime_s = float(self.mediumtime)
-            m, s = map(float, str(self.absoluttime).split(":"))
-            s = int(s)
-            self.absoluttime_s = datetime.timedelta(minutes=m, seconds=float(s))
+            # m, s = map(float, str(self.absoluttime).split(":"))
+            # s = int(s)
+            # self.absoluttime_s = datetime.timedelta(minutes=m, seconds=float(s))
         except ValueError as e:
             print(f"ParseError: {e}")
 
@@ -148,18 +167,19 @@ class Round:
         self.updateRaceTime(randomize=False)
         self.updatePilotList(kwargs['DATA'])
         self.parseCategory()
-        self.PreviousPilotDict = deepcopy(self.CurrentPilotDict)
-        self.CurrentPilotDict = {pilot.pilot:pilot for pilot in self.pilotList}
-        if self.PreviousPilotDict is not None:
-            for pilotKey in self.CurrentPilotDict:
-                if self.PreviousPilotDict[pilotKey].laps != self.CurrentPilotDict[pilotKey].laps or bypassLapDetect:
-                    self.NewLap.append(pilotKey)
-                    print(f"Detected new lap for {pilotKey}, Adding data into dataframe")
-                    self.PilotDataFrameDict[pilotKey] = self.CurrentPilotDict[pilotKey].fillDataFrame(inputdf=self.PilotDataFrameDict[pilotKey], RaceTime=self.racetime_s)
-                    # print(self.PilotDataFrameDict[pilotKey])
-                    self.CurrentPilotDict[pilotKey].pace_5m = self.getPace(pilotKey, period="40s", valueCol="LAPS", timeCol="RACETIME")
-                    self.CurrentPilotDict[pilotKey].pace_1h = self.getPace(pilotKey, period="1h", valueCol="LAPS", timeCol="RACETIME")
-                # print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
+        # self.PreviousPilotDict = deepcopy(self.CurrentPilotDict)
+        # self.CurrentPilotDict = {pilot.pilot:pilot for pilot in self.pilotList}
+        # if self.PreviousPilotDict is not None:
+        #     for pilotKey in self.CurrentPilotDict:
+        #         print(f"{pilotKey} ==> {self.PreviousPilotDict[pilotKey].laps}/{self.CurrentPilotDict[pilotKey].laps}")
+        #         if self.PreviousPilotDict[pilotKey].laps != self.CurrentPilotDict[pilotKey].laps:
+        #             self.NewLap.append(pilotKey)
+        #             print(f"Detected new lap for {pilotKey}, Adding data into dataframe")
+        #             self.PilotDataFrameDict[pilotKey] = self.CurrentPilotDict[pilotKey].fillDataFrame(inputdf=self.PilotDataFrameDict[pilotKey], RaceTime=self.racetime_s)
+        #             # print(self.PilotDataFrameDict[pilotKey])
+        #             self.CurrentPilotDict[pilotKey].pace_5m = self.getPace(pilotKey, period="40s", valueCol="LAPS", timeCol="RACETIME")
+        #             self.CurrentPilotDict[pilotKey].pace_1h = self.getPace(pilotKey, period="1h", valueCol="LAPS", timeCol="RACETIME")
+        #         # print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
     
     def ReloadDataFramesFromFile(self, BasePath):
         for pilot in self.pilotList:
@@ -225,6 +245,7 @@ class Round:
             print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
     
     def updatePilotList(self, data:list):
+
         try:
             self.numberOfPilots = len(data)
             for i, pilot in enumerate(data):

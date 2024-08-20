@@ -15,10 +15,10 @@ class scene():
 class OBS_Auto():
     SceneList = {
         "Podium"            :scene("Podium", 2, 6), 
-        "Comptage"          :scene("Comptage", 30, 75), 
+        "Comptage"          :scene("Comptage", 30, 75, autoSwitch=False), 
         "Table"             :scene("Table", 30,75), 
         "MultiScreen"       :scene("MultiScreen", 20, 35),
-        "PitStop"           :scene("Stands", 20, 35),
+        "PitStop"           :scene("PitStop", 20, 35),
         "SerieDisplay"      :scene("SerieDisplay", autoSwitch=False),
         "StatisticsDisplay" :scene("StatisticsDisplay", autoSwitch=False)
     }
@@ -64,6 +64,8 @@ class OBS_Auto():
                 self.AutoSwitchDelay=ForceDuration
             else:
                 self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
+                while (not self.toScene.allowedAutoSwitch) and self.fromScene == self.toScene:
+                    self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
                 self.AutoSwitchDelay = self.toScene.getDelay()
             self.fromScene = self.toScene
 
