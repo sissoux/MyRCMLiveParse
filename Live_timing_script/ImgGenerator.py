@@ -66,7 +66,7 @@ def generateResultRankingCoordinates():
 
 coordinatesDict = generateResultRankingCoordinates()
 
-def generateMainRankingImage(RankingList:Round, backgroundImagePath:Path, buggyImagePath:Path, resize_dimensions=(1920, 1080), buggySize=(230,130)):
+def generateMainRankingImage(RankingList:Round, backgroundImagePath:Path, buggyImagePath:Path, outputPath:Path, resize_dimensions=(1920, 1080), buggySize=(230,130)):
     backgroundImg = Image.open(backgroundImagePath)
     backgroundImg = backgroundImg.resize(resize_dimensions, Image.LANCZOS)
 
@@ -93,4 +93,4 @@ def generateMainRankingImage(RankingList:Round, backgroundImagePath:Path, buggyI
         except Exception as e:
             print(e)
         
-    backgroundImg.save("output.png")
+    backgroundImg.save(outputPath)
