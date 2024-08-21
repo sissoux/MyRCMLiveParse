@@ -20,6 +20,7 @@ from OBSAutomate import OBS_Auto
 import pandas as pd
 import generateHTML
 from html2image import Html2Image
+from ImgGenerator import *
 
 def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=None, size=(1300,1280)):
     try:
@@ -31,7 +32,7 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = False
+LocalOnly = True
 AutomateOBS = False
 enableSevenSegDisplay = False
 
@@ -43,6 +44,7 @@ if AutomateOBS:
 
 PublisherServer_IP = "192.168.1.136"
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
+GdriveBasePath = Path("G:\Mon Drive\Affiches-Graphisme\Course\Course 12 - Sept 2024\YT LIVE")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 
 jsonFilePath =      Path(LiveBasePath, "Ranking.json")
@@ -62,7 +64,7 @@ if enableSevenSegDisplay:
     disp = Display(numberOfLines=3, Port="/dev/ttyS0")
 
 index = 0
-with open("jsontemplate.txt", 'r') as timefile:
+with open("jsontemplate.txt", 'r', encoding="utf-8") as timefile:
     InputTestFile = timefile.readlines()
 response = InputTestFile[0]
 Tstart = time.time()
@@ -100,6 +102,7 @@ while (True):
         if ReloadDataframe:
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
+        generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"))
         try:
             shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
             shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
@@ -119,7 +122,7 @@ while (True):
     # Gestion du TEMPS Restant
     RaceTime = currentRound.getRaceTime_pretty()
     print(f"RaceTime = {RaceTime}")
-
+ 
     
     pilotes = []
     
@@ -161,4 +164,4 @@ while (True):
     except PermissionError as e:
         print(f"Permission error while writing files.\n{e}")
 
-    time.sleep(1)
+    time.sleep(10)

@@ -222,8 +222,22 @@ class Round:
             serie = categoryMatch[0][1:][0].replace("::","-")
             tempserie = serie.split("-")
             self.round_pretty = f"{self.RoundDict[catNumber]}\n{tempserie[0].strip()}\n{tempserie[1].strip()} - {tempserie[2].strip()}"
+            self.category_pretty = f"{self.RoundDict[catNumber]}"
+            self.serie_pretty = f"{tempserie[0].strip()} - {tempserie[1].strip()} - {tempserie[2].strip()}"
             self.SerieNumber = tempserie[1].strip()[-1]
 
+        except IndexError:
+            print("Error parsing category")
+            self.round_pretty = "Manche non reconnue"
+            self.category_pretty = "Manche non reconnue"
+            self.serie_pretty = "Manche non reconnue"
+        except KeyError:
+            self.round_pretty = "Manche non reconnue"
+            self.category_pretty = "Manche non reconnue"
+            self.serie_pretty = "Manche non reconnue"
+
+        try:
+            
             if self.SerieNumber.isnumeric():
                 self.picPath = Path("QUALIF_HD", self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
                 self.bannerPath = Path("QUALIF_HD", "bandeau", "bandeau"+self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
@@ -234,13 +248,8 @@ class Round:
                 print(self.picPath)
                 print(self.bannerPath)
 
-
-
-        except IndexError:
-            print("Error parsing category")
-            self.round_pretty = "Manche non reconnue"
         except KeyError:
-            self.round_pretty = "Manche non reconnue"
+            print("Error generating file pathes for current category")
         if self.verbose:
             print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
     
