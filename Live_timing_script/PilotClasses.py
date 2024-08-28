@@ -29,6 +29,33 @@ class Teams():
 
 
 class Pilot:
+    CountryDict = {
+        "FRA" : "france",
+        "Germany" : "germany",
+        "DEU" : "germany",
+        "BEL" : "belgium",
+        "LUX" : "luxembourg",
+        "CZE" : "czech-republic",
+        "GBP" : "united-kingdom",
+        "GBR" : "united-kingdom",
+        "Great Britain" : "united-kingdom",
+        "CHE" : "switzerland",
+        "GRC" : "grece",
+        "DNK" : "denmark",
+        "POL" : "poland",
+        "HUN" : "hungary",
+        "UKR" : "ukraine",
+        "Slovakia" : "slovakia",
+        "ESP" : "spain",
+        "ITA" : "italy",
+        "BGR" : "bulgaria",
+        "NLD" : "netherlands",
+        "SWE" : "sweden",
+        "PRT" : "portugal",
+        "AUT" : "austria",
+        "Austria" : "austria",
+        "SVK" : "slovakia"
+    }
     def __init__(self, **kwargs):
         self.positionChangeTimer = 0
         self.newBestTimer = 0
@@ -73,6 +100,8 @@ class Pilot:
         self.position = position
         self.updateTime()
 
+        self.countryicon = self.CountryDict[self.country]+".png"
+
         # if self.laptime_s==self.besttime_s:
         #     self.newBestTimer = time.time()
         self.newBest = self.laptime_s==self.besttime_s#(self.newBestTimer + self.newBestHoldTime) > time.time()
@@ -91,6 +120,7 @@ class Pilot:
                             'LAPTIME'           :self.laptime,
                             'MEDIUMTIME'        :self.mediumtime,
                             'PILOT'             :self.pilot,
+                            'COUNTRY'           :self.country,
                             'PILOTNUMBER'       :self.pilotnumber,
                             'FORECAST'          :self.forecast,
                             'PROGRESS'          :self.progress,
@@ -130,7 +160,10 @@ class Round:
         "TT10 EL 4x2 MOD CF" : "4x2 Modifié",
         "TT10 EL 4x4 MOD CF" : "4x4 Modifié",
         "TT10 EL TR CF" : "Truck",
-        "Online" : "4x0 Test"
+        "Online" : "4x0 Test",
+        "EFRA 10 MOD" : "EFRA 1/10E Modified",
+        "EFRA 10 FRONTI" : "EFRA 1/10E Fronti",
+        "EFRA 10 SPEC" : "EFRA 1/10E Stock"
                  }
     
     FileDictionnary = {

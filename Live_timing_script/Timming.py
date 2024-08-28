@@ -16,6 +16,7 @@ import re
 import shutil
 import secret
 import obsws_python as obs
+from  Websocket_MyRCM import *
 from OBSAutomate import OBS_Auto
 import pandas as pd
 import generateHTML
@@ -26,13 +27,13 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     try:
         hti = Html2Image(size=size, output_path=Path(FilePath).parent.as_posix(), disable_logging=True)
 
-        if html_string is not None:
-            hti.screenshot(html_str=html_string, css_file=css_file, save_as=Path(FilePath).name)   
-
+        #if html_string is not None:
+            #hti.screenshot(html_str=html_string, css_file=css_file, save_as=Path(FilePath).name)   
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = True
+LocalOnly = False
+UseWebSocket = True
 AutomateOBS = False
 enableSevenSegDisplay = False
 
@@ -43,8 +44,10 @@ if AutomateOBS:
     
 
 PublisherServer_IP = "192.168.1.136"
-LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
-GdriveBasePath = Path("G:\Mon Drive\Affiches-Graphisme\Course\Course 12 - Sept 2024\YT LIVE")
+#LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
+LiveBasePath = Path("/Volumes/charlesmerlen/Sites/RC")
+#GdriveBasePath = Path("H:/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
+GdriveBasePath = Path("/Users/charlesmerlen/Library/CloudStorage/GoogleDrive-rcpark59193@gmail.com/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 
 jsonFilePath =      Path(LiveBasePath, "Ranking.json")
@@ -54,7 +57,7 @@ roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 TeamLogoPath =      Path(LiveBasePath, "LogoTeam")
 RankingImagePath =  Path(LiveBasePath, "Ranking.png")
-# RankingImagePath =  Path("Ranking.png")
+RankingImagePath =  Path("Ranking.png")
 
 shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 shutil.copyfile("style.css", Path(LiveBasePath, 'style.css'))
@@ -87,7 +90,11 @@ while (True):
 
     try:
         if not LocalOnly:
-            response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
+            if UseWebSocket:
+                response = get_websocket_response()
+            else:
+                response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
+            #print(response)
         js = json.loads(response)
     except ConnectionError:
         print("Cannot reach publisher server")
@@ -164,4 +171,4 @@ while (True):
     except PermissionError as e:
         print(f"Permission error while writing files.\n{e}")
 
-    time.sleep(10)
+    time.sleep(5)
