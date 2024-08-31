@@ -25,7 +25,7 @@ from ImgGenerator import *
 
 def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=None, size=(1300,1280)):
     try:
-        hti = Html2Image(size=size, output_path=Path(FilePath).parent.as_posix(), disable_logging=True)
+        hti = Html2Image(size=size, output_path=Path(FilePath).parent.as_posix(), disable_logging=True, browser="Edge")
 
         if html_string is not None:
             hti.screenshot(html_str=html_string, css_file=css_file, save_as=Path(FilePath).name)   

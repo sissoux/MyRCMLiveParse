@@ -1,6 +1,6 @@
 table {
   table-layout: fixed;
-  width: 900px;
+  width: 400px;
   /* height: 460px;; */
   font-family: Montserrat;
   font-size: 18px;
@@ -48,17 +48,17 @@ td:nth-child(1) {
 
 th:nth-child(2),
 td:nth-child(2) {
-  width: 40px;
+  width: 30px;
   /* Colonne du numéro de voiture */
   font-family: Montserrat Black;
-  color: lightblue;
+  color: black;
   font-style: italic;
   font-size: 17px;
   text-align: center;
   border-radius: 8px;
   padding: 0px;
   margin: 0px;
-  /*background-color: #C5DCEB;$/
+  background-color: #C5DCEB;
   /* Fond gris transparent */
   border: 1px solid black;
 }
@@ -75,6 +75,7 @@ td:nth-child(3) {
 }
 
 
+
 th:nth-child(4),
 td:nth-child(4) {
   width: 50px;
@@ -88,20 +89,8 @@ td:nth-child(5) {
   /* color: red; */
   /* Colonne du meilleur temps */
 }
-td:nth-child(6) {
-  width: 60px;
-  /* color: red; */
-  /* Colonne du meilleur temps */
-}
-td:nth-child(7) {
-  width: 60px;
-  /* color: red; */
-  /* Colonne du meilleur temps */
-}td:nth-child(8) {
-  width: 90px;
-  /* color: red; */
-  /* Colonne du meilleur temps */
-}
+
+
 img {
   height: 25px;
 }
