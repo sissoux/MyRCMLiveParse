@@ -16,7 +16,7 @@ import re
 import shutil
 import secret
 import obsws_python as obs
-from  Websocket_MyRCM import *
+# from  Websocket_MyRCM import *
 from OBSAutomate import OBS_Auto
 import pandas as pd
 import generateHTML
@@ -27,13 +27,14 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     try:
         hti = Html2Image(size=size, output_path=Path(FilePath).parent.as_posix(), disable_logging=True)
 
-        #if html_string is not None:
-            #hti.screenshot(html_str=html_string, css_file=css_file, save_as=Path(FilePath).name)   
+        if html_string is not None:
+            hti.screenshot(html_str=html_string, css_file=css_file, save_as=Path(FilePath).name)   
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = False
-UseWebSocket = True
+LocalOnly = True
+generateHTML_PNG = True
+UseWebSocket = False
 AutomateOBS = False
 enableSevenSegDisplay = False
 
@@ -44,10 +45,10 @@ if AutomateOBS:
     
 
 PublisherServer_IP = "192.168.1.136"
-#LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
-LiveBasePath = Path("/Volumes/charlesmerlen/Sites/RC")
-#GdriveBasePath = Path("H:/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
-GdriveBasePath = Path("/Users/charlesmerlen/Library/CloudStorage/GoogleDrive-rcpark59193@gmail.com/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
+LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
+# LiveBasePath = Path("/Volumes/charlesmerlen/Sites/RC")
+GdriveBasePath = Path("G:/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
+# GdriveBasePath = Path("/Users/charlesmerlen/Library/CloudStorage/GoogleDrive-rcpark59193@gmail.com/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 
 jsonFilePath =      Path(LiveBasePath, "Ranking.json")
@@ -160,7 +161,8 @@ while (True):
         with open(htmlFilePath,'w', encoding='utf-8') as file: 
             file.write(rankingHtmlBody)
 
-        htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,500))
+        if generateHTML_PNG:
+            htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,500))
 
         #Save HTML file
         with open(htmlTableFilePath,'w', encoding='utf-8') as file: 
