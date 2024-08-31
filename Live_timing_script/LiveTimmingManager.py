@@ -1,15 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jan 20 21:29:40 2024
-
-@author: charlesmerlen
-"""
-
 import json
 import requests
 import time
-import random
 from pathlib import Path
 from PilotClasses import Pilot, Round
 import re
@@ -58,10 +49,11 @@ roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 TeamLogoPath =      Path(LiveBasePath, "LogoTeam")
 RankingImagePath =  Path(LiveBasePath, "Ranking.png")
-RankingImagePath =  Path("Ranking.png")
+# RankingImagePath =  Path("Ranking.png")
 
 shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 shutil.copyfile("style.css", Path(LiveBasePath, 'style.css'))
+shutil.copyfile("clock.html", Path(LiveBasePath, 'clock.html'))
 
 if enableSevenSegDisplay:
     from displayDriver import Display
