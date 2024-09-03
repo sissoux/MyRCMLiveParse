@@ -103,6 +103,7 @@ while (True):
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
         generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+        generateStartGridImage(currentRound, outputPath=Path(LiveBasePath, "StartGrid.png"))
         try:
             shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
             shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
@@ -132,10 +133,6 @@ while (True):
     for pilot in currentRound.pilotList:
         rankingHtmlBody += generateHTML.getPilotRanking(pilot, showBestLap=False)
         statTabHtmlBody += generateHTML.getPilotStatTable(pilot, TeamLogoPath)
-
-    if enableSevenSegDisplay and len(currentRound.pilotList)>=disp.numberOfLines: 
-        disp.setLines([f"{pilot.vehicle:02d}-{pilot.besttime_s:05.2f}-{pilot.laps:02d}" for pilot in currentRound.pilotList[:disp.numberOfLines]])
-        disp.updateDisplay()
     
     rankingHtmlBody += '</tbody></table></body>'
     rankingHtmlBody += '</html>'

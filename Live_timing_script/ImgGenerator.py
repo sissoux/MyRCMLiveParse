@@ -94,3 +94,45 @@ def generateMainRankingImage(RankingList:Round, backgroundImagePath:Path, buggyI
             print(e)
         
     backgroundImg.save(outputPath)
+
+StartGridCoordinates=[
+    (100,800),
+    (200,600),
+    (300,500),
+    (400,700),
+    (500,600),
+    (600,800),
+    (700,300),
+    (800,200),
+    (900,100),
+    (1000,500),
+    (1100,600),
+ ]
+
+def generateStartGridImage(RankingList:Round, outputPath:Path, resize_dimensions=(1920, 1080)):
+    backgroundImg = Image.new('RGBA', resize_dimensions, (255, 255, 255, 0))
+
+    drawImg = ImageDraw.Draw(backgroundImg)
+
+    drawImg.text((90,127), RankingList.category_pretty, font=CategoryStyle.font, fill=CategoryStyle.color)
+    drawImg.text((90,213), RankingList.serie_pretty, font=SerieStyle.font, fill=SerieStyle.color)
+
+    for index in range(11):
+        x,y = StartGridCoordinates[index]
+
+        try:
+            drawImg.text((x,y), str(index), font=NameStyle.font, fill=NameStyle.color)
+        except Exception as e:
+            print(e)
+        
+    # for index, pilot in enumerate(RankingList.pilotList):
+    #     x,y = StartGridCoordinates[index]
+
+    #     try:
+    #         pilotName = pilot.pilot.split(" ")
+    #         drawImg.text((x,y), str(index), font=NameStyle.font, fill=NameStyle.color)
+    #         drawImg.text((x,y+20), pilotName[1][:18], font=LastNameStyle.font, fill=LastNameStyle.color)
+    #     except Exception as e:
+    #         print(e)
+        
+    backgroundImg.save(outputPath)
