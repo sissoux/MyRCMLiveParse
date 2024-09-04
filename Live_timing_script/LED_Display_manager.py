@@ -1,61 +1,22 @@
-import re
+import json
+import requests
 import time
+import re
 import datetime
 from random import randint
 from pathlib import Path
-from enum import StrEnum
 import pandas as pd
-from copy import deepcopy
+import argparse
 
-class Teams():
-    class Names(StrEnum):
-        rocket = "Rocket"
-        aliExpress = "Ali Express"
-        cingles = "Les Cinglés"
-        tiBolid = "TI'BOLID Revival"
-        diabolo = "DIA BOLO"
-        ghost = "Ghost"
+# Set up argument parser
+parser = argparse.ArgumentParser(description="A script with a configurable timeout.")
 
-    TeamDict = {
-        "1" : Names.rocket,
-        "2" : Names.aliExpress,
-        "3" : Names.cingles,
-        "4" : Names.tiBolid,
-        "5" : Names.diabolo,
-        "6" : Names.ghost
-    }
-
-    # Best / avg / laps / pace on 5 min / logo / photo voiture / pace 1h / forecast / avg pit stop time
+parser.add_argument('-t', type=float, default=0.5, help='Set the timeout value (default: 0.5)')
+args = parser.parse_args()
+timeout = args.t
 
 
 class Pilot:
-    CountryDict = {
-        "FRA" : "france",
-        "Germany" : "germany",
-        "DEU" : "germany",
-        "BEL" : "belgium",
-        "LUX" : "luxembourg",
-        "CZE" : "czech-republic",
-        "GBP" : "united-kingdom",
-        "GBR" : "united-kingdom",
-        "Great Britain" : "united-kingdom",
-        "CHE" : "switzerland",
-        "GRC" : "grece",
-        "DNK" : "denmark",
-        "POL" : "poland",
-        "HUN" : "hungary",
-        "UKR" : "ukraine",
-        "Slovakia" : "slovakia",
-        "ESP" : "spain",
-        "ITA" : "italy",
-        "BGR" : "bulgaria",
-        "NLD" : "netherlands",
-        "SWE" : "sweden",
-        "PRT" : "portugal",
-        "AUT" : "austria",
-        "Austria" : "austria",
-        "SVK" : "slovakia"
-    }
     def __init__(self, **kwargs):
         self.positionChangeTimer = 0
         self.newBestTimer = 0
@@ -93,53 +54,21 @@ class Pilot:
         self.trend =            kwargs.get('TREND', None)
         self.vehicle =          kwargs.get('VEHICLE', None)
         self.voltage =          kwargs.get('VOLTAGE', None)
-        try:
-            self.TeamName = Teams.TeamDict[str(self.vehicle)]
-        except Exception as e:
-            self.TeamName = ""
         self.position = position
         self.updateTime()
 
-        self.countryicon = self.CountryDict[self.country]+".png"
-
-        # if self.laptime_s==self.besttime_s:
-        #     self.newBestTimer = time.time()
-        self.newBest = self.laptime_s==self.besttime_s#(self.newBestTimer + self.newBestHoldTime) > time.time()
+        self.newBest = self.laptime_s==self.besttime_s
 
         if self.vehicle != self.previousVehicle :
             self.positionChangeTimer = time.time()
         self.previousVehicle = self.vehicle
         self.newPosition = (self.positionChangeTimer + self.newPositionHoldTime) > time.time()
 
-    def fillDataFrame(self, RaceTime, inputdf=None)->pd.DataFrame:
-        df = pd.DataFrame({
-                            'ABSOLUTTIME'       :self.absoluttime,
-                            'BESTTIME'          :self.besttime,
-                            'BESTTIMEN'         :self.besttimen,
-                            'LAPS'              :self.laps,
-                            'LAPTIME'           :self.laptime,
-                            'MEDIUMTIME'        :self.mediumtime,
-                            'PILOT'             :self.pilot,
-                            'COUNTRY'           :self.country,
-                            'PILOTNUMBER'       :self.pilotnumber,
-                            'FORECAST'          :self.forecast,
-                            'PROGRESS'          :self.progress,
-                            'STANDARDDEVIATION' :self.standarddeviation,
-                            'TRANSPONDER'       :self.transponder,
-                            'VEHICLE'           :self.vehicle,
-                            'TEMPERATUR'        :self.temperature,
-                            'RACETIME'          :RaceTime
-                        }, index=[0]) 
-        if inputdf is not None:
-            return pd.concat([inputdf, df])
-        else:
-            return df
-
     
     def updateTime(self):
         try:
             self.besttime_s = float(self.besttime)
-            # self.besttimen_s = float(self.besttimen)
+            self.besttimen_s = float(self.besttimen)
             self.laptime_s = float(self.laptime)
             self.mediumtime_s = float(self.mediumtime)
             # m, s = map(float, str(self.absoluttime).split(":"))
@@ -166,24 +95,8 @@ class Round:
         "EFRA 10 SPEC" : "EFRA 1/10E Stock"
                  }
     
-    FileDictionnary = {
-        "TT10 EL 4x2 STD CF" : "Qual-42S-S",
-        "TT10 EL 4x2 MOD CF" : "Qual-42M-S",
-        "TT10 EL 4x4 MOD CF" : "Qual-44M-S",
-        "TT10 EL TR CF" : "Qual-TRK-S"
-    }
-
-    FinaleFileDictionnary={
-        "TT10 EL 4x2 STD CF" : "42S.Final-",
-        "TT10 EL 4x2 MOD CF" : "42M.Final-",
-        "TT10 EL 4x4 MOD CF" : "44M.Final-",
-        "TT10 EL TR CF" : "TRK.Final-"
-    }
-    
     def __init__(self, **kwargs):
         self.pilotList = [Pilot(**pilot) for pilot in kwargs['DATA']]
-        self.PilotDataFrameDict = {pilot.pilot:pd.DataFrame() for pilot in self.pilotList}
-        self.CurrentPilotDict = None
         self.NewLap = []
         self.update(**kwargs)
         
@@ -200,19 +113,6 @@ class Round:
         self.updateRaceTime(randomize=False)
         self.updatePilotList(kwargs['DATA'])
         self.parseCategory()
-        # self.PreviousPilotDict = deepcopy(self.CurrentPilotDict)
-        # self.CurrentPilotDict = {pilot.pilot:pilot for pilot in self.pilotList}
-        # if self.PreviousPilotDict is not None:
-        #     for pilotKey in self.CurrentPilotDict:
-        #         print(f"{pilotKey} ==> {self.PreviousPilotDict[pilotKey].laps}/{self.CurrentPilotDict[pilotKey].laps}")
-        #         if self.PreviousPilotDict[pilotKey].laps != self.CurrentPilotDict[pilotKey].laps:
-        #             self.NewLap.append(pilotKey)
-        #             print(f"Detected new lap for {pilotKey}, Adding data into dataframe")
-        #             self.PilotDataFrameDict[pilotKey] = self.CurrentPilotDict[pilotKey].fillDataFrame(inputdf=self.PilotDataFrameDict[pilotKey], RaceTime=self.racetime_s)
-        #             # print(self.PilotDataFrameDict[pilotKey])
-        #             self.CurrentPilotDict[pilotKey].pace_5m = self.getPace(pilotKey, period="40s", valueCol="LAPS", timeCol="RACETIME")
-        #             self.CurrentPilotDict[pilotKey].pace_1h = self.getPace(pilotKey, period="1h", valueCol="LAPS", timeCol="RACETIME")
-        #         # print(f"{pilotKey} --> {self.CurrentPilotDict[pilotKey].laps} / {self.PreviousPilotDict[pilotKey].laps}")
     
     def ReloadDataFramesFromFile(self, BasePath):
         for pilot in self.pilotList:
@@ -268,21 +168,7 @@ class Round:
             self.round_pretty = "Manche non reconnue"
             self.category_pretty = "Manche non reconnue"
             self.serie_pretty = "Manche non reconnue"
-
-        try:
             
-            if self.SerieNumber.isnumeric():
-                self.picPath = Path("QUALIF_HD", self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                self.bannerPath = Path("QUALIF_HD", "bandeau", "bandeau"+self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                print(self.picPath)
-            else:
-                self.picPath = Path("FINALES_HD", self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                self.bannerPath = Path("FINALES_HD", "bandeau", "bandeau"+self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                print(self.picPath)
-                print(self.bannerPath)
-
-        except KeyError:
-            print("Error generating file pathes for current category")
         if self.verbose:
             print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
     
@@ -294,3 +180,70 @@ class Round:
                 self.pilotList[i].update(i, **pilot)
         except IndexError:
             print("Error updating pilot list.")
+
+
+
+LocalOnly = True
+UseWebSocket = False
+
+PublisherServer_IP = "192.168.1.136"
+
+from displayDriver import Display
+disp = Display(numberOfLines=3, Port="/dev/ttyS0")
+
+index = 0
+with open("jsontemplate.txt", 'r', encoding="utf-8") as timefile:
+    InputTestFile = timefile.readlines()
+response = InputTestFile[0]
+Tstart = time.time()
+
+newRound = False
+PreviousGroup = None
+try:
+  while (True):
+  
+      if Tstart + 5 < time.time():
+          Tstart = time.time()
+          index +=1
+          try:
+              response = InputTestFile[index]
+          except IndexError:
+              index = 0
+  
+      try:
+          if not LocalOnly:
+              if UseWebSocket:
+                  response = get_websocket_response()
+              else:
+                  response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
+              #print(response)
+          js = json.loads(response)
+      except ConnectionError:
+          print("Cannot reach publisher server")
+          continue
+  
+      # Check if we entered a new round to create new pilot list
+      currentGroup = js['EVENT']['METADATA']['SECTION']+js['EVENT']['METADATA']['GROUP']
+  
+      if PreviousGroup != currentGroup:
+          PreviousGroup = currentGroup
+          currentRound = Round(**js['EVENT'])
+          newRound = True
+      else:
+          newRound = False
+          currentRound.update(**js['EVENT'])
+  
+      print(f"Current round = {currentRound.round_pretty}")
+      print(f"RaceTime = {currentRound.getRaceTime_pretty()}")
+  
+      PilotsToBeDisplayed = [(f"{pilot.vehicle:02d}-{pilot.laptime_s:05.2f}-{pilot.laps:04d}","b" if pilot.besttime == pilot.laptime else "r") for pilot in currentRound.pilotList[:disp.numberOfLines]]
+      print(PilotsToBeDisplayed)
+  
+      if len(currentRound.pilotList)>=disp.numberOfLines: 
+          disp.setLines(PilotsToBeDisplayed)
+          disp.updateDisplay()
+  
+  
+      time.sleep(timeout)
+except KeyboardInterrupt:
+    print("Received interruption. Stopping.")

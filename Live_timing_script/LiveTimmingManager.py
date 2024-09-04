@@ -1,21 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jan 20 21:29:40 2024
-
-@author: charlesmerlen
-"""
-
 import json
 import requests
 import time
-import random
 from pathlib import Path
 from PilotClasses import Pilot, Round
 import re
 import shutil
 import secret
 import obsws_python as obs
+# from  Websocket_MyRCM import *
 from OBSAutomate import OBS_Auto
 import pandas as pd
 import generateHTML
@@ -24,15 +16,16 @@ from ImgGenerator import *
 
 def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=None, size=(1300,1280)):
     try:
-        hti = Html2Image(size=size, output_path=Path(FilePath).parent.as_posix(), disable_logging=True)
+        hti = Html2Image(size=size, output_path=Path(FilePath).parent.as_posix(), disable_logging=True, browser="Edge")
 
         if html_string is not None:
             hti.screenshot(html_str=html_string, css_file=css_file, save_as=Path(FilePath).name)   
-
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
 LocalOnly = True
+generateHTML_PNG = True
+UseWebSocket = False
 AutomateOBS = False
 enableSevenSegDisplay = False
 
@@ -44,7 +37,9 @@ if AutomateOBS:
 
 PublisherServer_IP = "192.168.1.136"
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
-GdriveBasePath = Path("G:\Mon Drive\Affiches-Graphisme\Course\Course 12 - Sept 2024\YT LIVE")
+# LiveBasePath = Path("/Volumes/charlesmerlen/Sites/RC")
+GdriveBasePath = Path("G:/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
+# GdriveBasePath = Path("/Users/charlesmerlen/Library/CloudStorage/GoogleDrive-rcpark59193@gmail.com/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 
 jsonFilePath =      Path(LiveBasePath, "Ranking.json")
@@ -58,6 +53,7 @@ RankingImagePath =  Path(LiveBasePath, "Ranking.png")
 
 shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 shutil.copyfile("style.css", Path(LiveBasePath, 'style.css'))
+shutil.copyfile("clock.html", Path(LiveBasePath, 'clock.html'))
 
 if enableSevenSegDisplay:
     from displayDriver import Display
@@ -87,7 +83,11 @@ while (True):
 
     try:
         if not LocalOnly:
-            response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
+            if UseWebSocket:
+                response = get_websocket_response()
+            else:
+                response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
+            #print(response)
         js = json.loads(response)
     except ConnectionError:
         print("Cannot reach publisher server")
@@ -103,6 +103,7 @@ while (True):
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
         generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+        generateStartGridImage(currentRound, outputPath=Path(LiveBasePath, "StartGrid.png"))
         try:
             shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
             shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
@@ -132,10 +133,6 @@ while (True):
     for pilot in currentRound.pilotList:
         rankingHtmlBody += generateHTML.getPilotRanking(pilot, showBestLap=False)
         statTabHtmlBody += generateHTML.getPilotStatTable(pilot, TeamLogoPath)
-
-    if enableSevenSegDisplay and len(currentRound.pilotList)>=disp.numberOfLines: 
-        disp.setLines([f"{pilot.vehicle:02d}-{pilot.besttime_s:05.2f}-{pilot.laps:02d}" for pilot in currentRound.pilotList[:disp.numberOfLines]])
-        disp.updateDisplay()
     
     rankingHtmlBody += '</tbody></table></body>'
     rankingHtmlBody += '</html>'
@@ -153,7 +150,8 @@ while (True):
         with open(htmlFilePath,'w', encoding='utf-8') as file: 
             file.write(rankingHtmlBody)
 
-        htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,500))
+        if generateHTML_PNG:
+            htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,500))
 
         #Save HTML file
         with open(htmlTableFilePath,'w', encoding='utf-8') as file: 
@@ -164,4 +162,4 @@ while (True):
     except PermissionError as e:
         print(f"Permission error while writing files.\n{e}")
 
-    time.sleep(10)
+    time.sleep(5)
