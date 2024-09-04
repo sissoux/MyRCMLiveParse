@@ -6,6 +6,15 @@ import datetime
 from random import randint
 from pathlib import Path
 import pandas as pd
+import argparse
+
+# Set up argument parser
+parser = argparse.ArgumentParser(description="A script with a configurable timeout.")
+
+parser.add_argument('-t', type=float, default=0.5, help='Set the timeout value (default: 0.5)')
+args = parser.parse_args()
+timeout = args.t
+
 
 class Pilot:
     def __init__(self, **kwargs):
@@ -179,8 +188,8 @@ UseWebSocket = False
 
 PublisherServer_IP = "192.168.1.136"
 
-# from displayDriver import Display
-# disp = Display(numberOfLines=3, Port="/dev/ttyS0")
+from displayDriver import Display
+disp = Display(numberOfLines=3, Port="/dev/ttyS0")
 
 index = 0
 with open("jsontemplate.txt", 'r', encoding="utf-8") as timefile:
@@ -190,49 +199,51 @@ Tstart = time.time()
 
 newRound = False
 PreviousGroup = None
-while (True):
-
-    if Tstart + 5 < time.time():
-        Tstart = time.time()
-        index +=1
-        try:
-            response = InputTestFile[index]
-        except IndexError:
-            index = 0
-
-    try:
-        if not LocalOnly:
-            if UseWebSocket:
-                response = get_websocket_response()
-            else:
-                response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
-            #print(response)
-        js = json.loads(response)
-    except ConnectionError:
-        print("Cannot reach publisher server")
-        continue
-
-    # Check if we entered a new round to create new pilot list
-    currentGroup = js['EVENT']['METADATA']['SECTION']+js['EVENT']['METADATA']['GROUP']
-
-    if PreviousGroup != currentGroup:
-        PreviousGroup = currentGroup
-        currentRound = Round(**js['EVENT'])
-        newRound = True
-    else:
-        newRound = False
-        currentRound.update(**js['EVENT'])
-
-    print(f"Current round = {currentRound.round_pretty}")
-    print(f"RaceTime = {currentRound.getRaceTime_pretty()}")
-
-    # PilotsToBeDisplayed = [f"{pilot.vehicle:02d}-{pilot.besttime_s:05.2f}-{pilot.laps:04d}" for pilot in currentRound.pilotList[:disp.numberOfLines]]
-
-    # if len(currentRound.pilotList)>=disp.numberOfLines: 
-    #     disp.setLines(PilotsToBeDisplayed)
-    #     disp.updateDisplay()
-
-
-    time.sleep(5)
-
-
+try:
+  while (True):
+  
+      if Tstart + 5 < time.time():
+          Tstart = time.time()
+          index +=1
+          try:
+              response = InputTestFile[index]
+          except IndexError:
+              index = 0
+  
+      try:
+          if not LocalOnly:
+              if UseWebSocket:
+                  response = get_websocket_response()
+              else:
+                  response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
+              #print(response)
+          js = json.loads(response)
+      except ConnectionError:
+          print("Cannot reach publisher server")
+          continue
+  
+      # Check if we entered a new round to create new pilot list
+      currentGroup = js['EVENT']['METADATA']['SECTION']+js['EVENT']['METADATA']['GROUP']
+  
+      if PreviousGroup != currentGroup:
+          PreviousGroup = currentGroup
+          currentRound = Round(**js['EVENT'])
+          newRound = True
+      else:
+          newRound = False
+          currentRound.update(**js['EVENT'])
+  
+      print(f"Current round = {currentRound.round_pretty}")
+      print(f"RaceTime = {currentRound.getRaceTime_pretty()}")
+  
+      PilotsToBeDisplayed = [(f"{pilot.vehicle:02d}-{pilot.laptime_s:05.2f}-{pilot.laps:04d}","g" if pilot.besttime == pilot.laptime else "r") for pilot in currentRound.pilotList[:disp.numberOfLines]]
+      print(PilotsToBeDisplayed)
+  
+      if len(currentRound.pilotList)>=disp.numberOfLines: 
+          disp.setLines(PilotsToBeDisplayed)
+          disp.updateDisplay()
+  
+  
+      time.sleep(timeout)
+except KeyboardInterrupt:
+    print("Received interruption. Stopping.")
