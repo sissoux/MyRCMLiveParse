@@ -74,7 +74,7 @@ stripStateBuffer = [colors.Black for x in range(NumberOfLEDs)] # Init bufferList
 # digitColor = colors.Red
 
 
-def Display(toPrint, strip:NeoPixel, signColor = colors.Green, digitColor = colors.Red):
+def Display(toPrint, strip:NeoPixel, signColor = colors.Green, digitColor = colors.Red, event="r"):
     offset = 0
     # print(toPrint)
     if validateString(toPrint, NumberOfDigits+NumberOfFiller):
@@ -99,7 +99,11 @@ def Display(toPrint, strip:NeoPixel, signColor = colors.Green, digitColor = colo
                     # print(int(bit))
                     for led in range(ledPerSegment):
                         if bit == '1':
-                            stripStateBuffer[offset+j*ledPerSegment+led] = digitColor
+                            print(f"{c}:{i}:{event}")
+                            if i in [3,4,6,7] and event == "b":
+                                stripStateBuffer[offset+j*ledPerSegment+led] = colors.Blue   ##Display Best if needed
+                            else:
+                                stripStateBuffer[offset+j*ledPerSegment+led] = digitColor
                         else:
                             stripStateBuffer[offset+j*ledPerSegment+led] = colors.Black
                 offset += Digitlength
@@ -128,8 +132,8 @@ while True:
         print(ans)
         try:
             js = loads(ans)
-            if "color" in js:
-                Display(js["content"],stripList[js["line"]], digitColor=js["color"])
+            if "event" in js:
+                Display(js["content"],stripList[js["line"]], event=js["event"])
             else:
                 Display(js["content"],stripList[js["line"]])
         except ValueError as e:
