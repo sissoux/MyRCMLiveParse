@@ -6,7 +6,7 @@ class DisplayLine:
     def __init__(self, id:int, size=11, pattern="\d{2}[-.']\d{2}[-.']\d{2}[-.']\d{4}") -> None:
         self.pattern = re.compile(pattern)
         self.displaySize = size
-        self.color = "Red"
+        self.event = "r"
         try:
             self._value = self.checkFormat("00-00.00-0000")
         except ValueError as e:
@@ -50,7 +50,7 @@ class Display:
     
     def setLines(self, stringList:list):
         for i in range(self.numberOfLines):
-            self.content[i].value, self.content[i].color = stringList[i]
+            self.content[i].value, self.content[i].event = stringList[i]
 
     def updateDisplay(self):
         if self.serial is None or not self.serial.is_open:
@@ -59,7 +59,7 @@ class Display:
             self.serial.flush()
             for i,line in enumerate(self.content):
                 data = ''
-                data += str(json.dumps({"line":i, "content":line.value, "color":line.color}))
+                data += str(json.dumps({"line":i, "content":line.value, "event":line.event}))
                 data = bytearray(data+'\n', encoding='ascii')
                 print(f"sending ==> {data}")
                 self.serial.write(data)

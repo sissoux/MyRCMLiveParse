@@ -236,7 +236,7 @@ try:
       print(f"Current round = {currentRound.round_pretty}")
       print(f"RaceTime = {currentRound.getRaceTime_pretty()}")
   
-      PilotsToBeDisplayed = [(f"{pilot.vehicle:02d}-{pilot.laptime_s:05.2f}-{pilot.laps:04d}","g" if pilot.besttime == pilot.laptime else "r") for pilot in currentRound.pilotList[:disp.numberOfLines]]
+      PilotsToBeDisplayed = [(f"{pilot.vehicle:02d}-{pilot.laptime_s:05.2f}-{pilot.laps:04d}","b" if pilot.besttime == pilot.laptime else "r") for pilot in currentRound.pilotList[:disp.numberOfLines]]
       print(PilotsToBeDisplayed)
   
       if len(currentRound.pilotList)>=disp.numberOfLines: 
