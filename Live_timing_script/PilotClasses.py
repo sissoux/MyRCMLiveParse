@@ -100,7 +100,10 @@ class Pilot:
         self.position = position
         self.updateTime()
 
-        self.countryicon = self.CountryDict[self.country]+".png"
+        try:
+            self.countryicon = self.CountryDict[self.country]+".png"
+        except KeyError:
+            self.countryicon = None
 
         # if self.laptime_s==self.besttime_s:
         #     self.newBestTimer = time.time()
@@ -163,7 +166,8 @@ class Round:
         "Online" : "4x0 Test",
         "EFRA 10 MOD" : "EFRA 1/10E Modified",
         "EFRA 10 FRONTI" : "EFRA 1/10E Fronti",
-        "EFRA 10 SPEC" : "EFRA 1/10E Stock"
+        "EFRA 10 SPEC" : "EFRA 1/10E Stock",
+        "EFRA F1" : "EFRA F1"
                  }
     
     FileDictionnary = {

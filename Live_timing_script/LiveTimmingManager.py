@@ -3,16 +3,23 @@ import requests
 import time
 from pathlib import Path
 from PilotClasses import Pilot, Round
-import re
 import shutil
 import secret
 import obsws_python as obs
-# from  Websocket_MyRCM import *
+from  Websocket_MyRCM import *
 from OBSAutomate import OBS_Auto
 import pandas as pd
 import generateHTML
 from html2image import Html2Image
 from ImgGenerator import *
+import argparse
+
+# Set up argument parser
+parser = argparse.ArgumentParser(description="A script with a configurable timeout.")
+
+parser.add_argument('-t', type=float, default=0.5, help='Set the timeout value (default: 0.5)')
+args = parser.parse_args()
+timeout = args.t
 
 def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=None, size=(1300,1280)):
     try:
@@ -26,8 +33,8 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
 LocalOnly = True
 generateHTML_PNG = True
 UseWebSocket = False
+
 AutomateOBS = False
-enableSevenSegDisplay = False
 
 ReloadDataframe = False
 
@@ -35,29 +42,31 @@ if AutomateOBS:
     OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=True)
     
 
-PublisherServer_IP = "192.168.1.136"
+PublisherServer_IP = "127.0.0.1"
 LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
+RankingServerPath = Path("C:/RCPARK_Live/RankingHTML")
 # LiveBasePath = Path("/Volumes/charlesmerlen/Sites/RC")
 GdriveBasePath = Path("G:/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
 # GdriveBasePath = Path("/Users/charlesmerlen/Library/CloudStorage/GoogleDrive-rcpark59193@gmail.com/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
+RankingServerPath.mkdir(parents=True, exist_ok=True)
 
 jsonFilePath =      Path(LiveBasePath, "Ranking.json")
 htmlFilePath =      Path(LiveBasePath, "Ranking.html")
-htmlTableFilePath = Path(LiveBasePath, "Table.html")
+rankingServerHTMLPath = Path(RankingServerPath, "index.html")
 roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 TeamLogoPath =      Path(LiveBasePath, "LogoTeam")
 RankingImagePath =  Path(LiveBasePath, "Ranking.png")
 # RankingImagePath =  Path("Ranking.png")
+# rankingServerHTMLPath = Path("index.html")
 
+#Copy style files on the correct location to be used by Live and HTML Server
 shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 shutil.copyfile("style.css", Path(LiveBasePath, 'style.css'))
 shutil.copyfile("clock.html", Path(LiveBasePath, 'clock.html'))
 
-if enableSevenSegDisplay:
-    from displayDriver import Display
-    disp = Display(numberOfLines=3, Port="/dev/ttyS0")
+shutil.copyfile("detailedRankingStyle.css", Path(RankingServerPath, 'detailedRankingStyle.css'))
 
 index = 0
 with open("jsontemplate.txt", 'r', encoding="utf-8") as timefile:
@@ -91,6 +100,10 @@ while (True):
         js = json.loads(response)
     except ConnectionError:
         print("Cannot reach publisher server")
+        continue
+        js = json.loads(response)
+    except Exception as e:
+        print(e)
         continue
 
     # Check if we entered a new round to create new pilot list
@@ -128,11 +141,11 @@ while (True):
     pilotes = []
     
     rankingHtmlBody = generateHTML.getHeaderRanking(RaceTime, showBestLap=False)
-    statTabHtmlBody = generateHTML.getHeaderStatTable(RaceTime)
+    rankingServerHTMLBody = generateHTML.getHeaderDetailedRanking(RaceTime, Serie=currentRound.round_pretty)
 
     for pilot in currentRound.pilotList:
         rankingHtmlBody += generateHTML.getPilotRanking(pilot, showBestLap=False)
-        statTabHtmlBody += generateHTML.getPilotStatTable(pilot, TeamLogoPath)
+        rankingServerHTMLBody += generateHTML.getPilotDetailedRanking(pilot)
     
     rankingHtmlBody += '</tbody></table></body>'
     rankingHtmlBody += '</html>'
@@ -154,12 +167,12 @@ while (True):
             htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,500))
 
         #Save HTML file
-        with open(htmlTableFilePath,'w', encoding='utf-8') as file: 
-            file.write(statTabHtmlBody)
+        with open(rankingServerHTMLPath,'w', encoding='utf-8') as file: 
+            file.write(rankingServerHTMLBody)
 
     except FileNotFoundError:
         print("Problem writing files.\n{e}")
     except PermissionError as e:
         print(f"Permission error while writing files.\n{e}")
 
-    time.sleep(5)
+    time.sleep(timeout)
