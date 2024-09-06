@@ -18,7 +18,7 @@ import argparse
 # Set up argument parser
 parser = argparse.ArgumentParser(description="A script with a configurable timeout.")
 
-parser.add_argument('-t', type=float, default=0.5, help='Set the timeout value (default: 0.5)')
+parser.add_argument('-t', type=float, default=0.3, help='Set the timeout value (default: 0.5)')
 args = parser.parse_args()
 timeout = args.t
 
@@ -80,6 +80,8 @@ Tstart = time.time()
 
 newRound = False
 PreviousGroup = None
+GeneratedResults = False
+ShowedNewRound = False
 while (True):
 
     if Tstart + 5 < time.time():
@@ -117,9 +119,8 @@ while (True):
         if ReloadDataframe:
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
+        ShowedNewRound = False
         generateStartGridImage(currentRound, outputPath=Path(LiveBasePath, "StartGrid.png"))
-        if AutomateOBS:
-            OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie_T_"], ForceDuration = 10, Block = True)
         try:
             if currentRound.picPath is not None:
                 shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
@@ -132,27 +133,23 @@ while (True):
         currentRound.update(**js['EVENT'])
 
         if AutomateOBS:
+            if not ShowedNewRound:
+                ShowedNewRound = OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie_T_"], ForceDuration = 10, Block = True)
             match currentRound.RaceState:
-                case 4: #Manche terminée
+                case 4|5: #Manche terminée
                     if currentRound.RaceEnd:
+                        if not GeneratedResults:
+                            GeneratedResults = True
+                            generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
                         print("Round is over, Displaying results")
-                        generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
                         OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
-                case 5: #Manche terminée
-                    print("Round is over, Displaying results")
-                    generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
-                    OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
-                case 2: #Départ en attente
+                case 2|0: #Départ en attente
                     print("Waiting race to start. Showing grid.")
-                    if 10 <= sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":")))) <= 25:
-                        OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille"], ForceDuration = 15)
-                    else:
-                        OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Vue_Plafond_A_30_45"], ForceDuration = 15)
+                    countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
+                    OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if 5 <= countdown_seconds <= 30 else "V_Vue_Plafond_A_30_45"], ForceDuration=15)
                 case 1: #Manche en cours
+                    GeneratedResults = False
                     OBS.updateScene()
-
-
-    generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
 
     #add regular dataframeSave
     autoSaveDF=False

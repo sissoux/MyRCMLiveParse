@@ -76,23 +76,21 @@ class OBS_Auto():
                 print("Error while parsing scene durations, not adding scene to list.")
             
     def updateScene(self, ForceScene=None, ForceDuration=30, Block=False):
-        if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None and not (Block or self.temporaryBlock)):
+        if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None and not self.temporaryBlock):
             self.previousTime = time.time()
-            if Block: 
-                self.temporaryBlock = Block
 
             if "_B_" in self.OBS.get_current_program_scene().scene_name:
                 print("Currently in blocking scene, no auto switch. Check again in 5s.")
                 self.AutoSwitchDelay = 5
-                return
+                return False
             
             if "_T_" in self.OBS.get_current_program_scene().scene_name:
                 if not self.temporaryBlock:
                     self.temporaryBlock = True
-                    print("Currently in temporary blocking scene, no auto switch. Check again in 5s.")
-                    self.AutoSwitchDelay = 5
-                    return
-                else :
+                    print("Currently in temporary blocking scene, no auto switch. Check again in 10s.")
+                    self.AutoSwitchDelay = 10
+                    return False
+                else:
                     self.temporaryBlock = False
             
             if ForceScene is not None:
@@ -111,6 +109,7 @@ class OBS_Auto():
 
             if self.verbose:
                 print(f"Switching from {self.fromScene.name} to {self.toScene.name}. Next switch in {self.AutoSwitchDelay}s.")
+            return True
 
     def showStatistics(self, ForceDuration=30):
         self.updateScene(ForceScene=self.ManualSceneList["StatisticsDisplay"], ForceDuration=ForceDuration)

@@ -125,8 +125,8 @@ def generateStartGridImage(RankingList, outputPath, resize_dimensions=(1920, 108
     margin = 10
 
     for index, pilot in enumerate(RankingList.pilotList):
-        x, y = StartGridCoordinates[index]
         try:
+            x, y = StartGridCoordinates[index]
             full_name = pilot.pilot.strip()  # Strips any leading/trailing whitespace
             FirstName, LastName = full_name.split(maxsplit=1) if " " in full_name else (full_name, "")
             FirstName = f"{index+1} {FirstName[:12].upper()}"
@@ -149,8 +149,10 @@ def generateStartGridImage(RankingList, outputPath, resize_dimensions=(1920, 108
             drawImg.text((x, y), FirstName, font=NameStyle.font, fill=NameStyle.color)
             drawImg.text((x, y + (first_line_bbox[3] - first_line_bbox[1]) + margin), LastName, font=LastNameStyle.font, fill=LastNameStyle.color)
 
+        except IndexError as e:
+            print(f"Error generating Grid image {e}.")
         except Exception as e:
-            print(e)
+            print(f"Error generating Grid image {e}.")
     
     # Save the image
     backgroundImg.save(outputPath)
