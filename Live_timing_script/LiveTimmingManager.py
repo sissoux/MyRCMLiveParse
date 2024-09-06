@@ -30,16 +30,16 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = True
+LocalOnly = False
 generateHTML_PNG = True
 UseWebSocket = False
 
-AutomateOBS = False
+AutomateOBS = True
 
 ReloadDataframe = False
 
 if AutomateOBS:
-    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=True)
+    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=False)
     
 
 PublisherServer_IP = "127.0.0.1"
