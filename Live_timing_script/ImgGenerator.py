@@ -2,8 +2,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor
 from pathlib import Path
 from PilotClasses import Round, Pilot
 
-Montserrat_Black_file = Path("./Fonts/Montserrat","Montserrat-Black.ttf")
-Franchise_bold_file = Path("./Fonts","Franchise-Bold.ttf")
+Montserrat_Black_file = Path("./fonts/Montserrat","Montserrat-Black.ttf")
+Franchise_bold_file = Path("./fonts","Franchise-Bold.ttf")
 
 
 class TextStyle():
