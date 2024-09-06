@@ -183,12 +183,22 @@ class Round:
         "TT10 EL 4x4 MOD CF" : "44M.Final-",
         "TT10 EL TR CF" : "TRK.Final-"
     }
+
+    RaceStates={
+        "0": "Manche terminée",
+        "1": "Manche non démarée",
+        "2": "inconnu",
+        "3": "Manche non démarée",
+        "4": "Chrono à zero",
+        "5": "Manche terminée"
+    }
     
     def __init__(self, **kwargs):
         self.pilotList = [Pilot(**pilot) for pilot in kwargs['DATA']]
         self.PilotDataFrameDict = {pilot.pilot:pd.DataFrame() for pilot in self.pilotList}
         self.CurrentPilotDict = None
         self.NewLap = []
+        self.generateSerieFilePathes = False
         self.update(**kwargs)
         
     def update(self, bypassLapDetect=False, **kwargs):
@@ -200,6 +210,9 @@ class Round:
         self.racetime =         kwargs['METADATA'].get('RACETIME', None)
         self.remainingtime =    kwargs['METADATA'].get('REMAININGTIME', None)
         self.section =          kwargs['METADATA'].get('SECTION', None)
+        self.RaceState =        kwargs['METADATA'].get('RACESTATE', None)
+        self.RaceEnd =          kwargs['METADATA'].get('RACEEND', None)
+
         self.verbose = False
         self.updateRaceTime(randomize=False)
         self.updatePilotList(kwargs['DATA'])
@@ -273,20 +286,21 @@ class Round:
             self.category_pretty = "Manche non reconnue"
             self.serie_pretty = "Manche non reconnue"
 
-        try:
-            
-            if self.SerieNumber.isnumeric():
-                self.picPath = Path("QUALIF_HD", self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                self.bannerPath = Path("QUALIF_HD", "bandeau", "bandeau"+self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                print(self.picPath)
-            else:
-                self.picPath = Path("FINALES_HD", self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                self.bannerPath = Path("FINALES_HD", "bandeau", "bandeau"+self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
-                print(self.picPath)
-                print(self.bannerPath)
+        if self.generateSerieFilePathes:
+            try:
+                
+                if self.SerieNumber.isnumeric():
+                    self.picPath = Path("QUALIF_HD", self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                    self.bannerPath = Path("QUALIF_HD", "bandeau", "bandeau"+self.FileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                    print(self.picPath)
+                else:
+                    self.picPath = Path("FINALES_HD", self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                    self.bannerPath = Path("FINALES_HD", "bandeau", "bandeau"+self.FinaleFileDictionnary[catNumber]+self.SerieNumber+".jpg" )
+                    print(self.picPath)
+                    print(self.bannerPath)
 
-        except KeyError:
-            print("Error generating file pathes for current category")
+            except KeyError:
+                print("Error generating file pathes for current category")
         if self.verbose:
             print(f"Manche en cours : {self.roundData} ==> {self.round_pretty}")
     
@@ -297,4 +311,4 @@ class Round:
             for i, pilot in enumerate(data):
                 self.pilotList[i].update(i, **pilot)
         except IndexError:
-            print("Error updating pilot list.")
+            print("Error updating pilot list. There is probably an unassigned transponder.")

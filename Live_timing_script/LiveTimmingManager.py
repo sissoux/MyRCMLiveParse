@@ -1,6 +1,7 @@
 import json
 import requests
 import time
+import datetime
 from pathlib import Path
 from PilotClasses import Pilot, Round
 import shutil
@@ -34,12 +35,15 @@ LocalOnly = False
 generateHTML_PNG = True
 UseWebSocket = False
 
+LogInputData = True
+LogFileName = Path(f"RaceDataLog-{datetime.datetime.now().strftime("%d%b-%H%M%S")}.txt")
+
 AutomateOBS = True
 
 ReloadDataframe = False
 
 if AutomateOBS:
-    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=False)
+    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=False, debug=False)
     
 
 PublisherServer_IP = "127.0.0.1"
@@ -86,26 +90,24 @@ while (True):
         except IndexError:
             index = 0
 
-
-    if AutomateOBS:
-        OBS.updateScene()
-
     try:
         if not LocalOnly:
             if UseWebSocket:
                 response = get_websocket_response()
             else:
                 response = requests.get(f"http://{PublisherServer_IP}/1/StreamingData").text
-            #print(response)
+
         js = json.loads(response)
     except ConnectionError:
         print("Cannot reach publisher server")
         continue
-        js = json.loads(response)
     except Exception as e:
         print(e)
         continue
 
+    if LogInputData:
+        with open(LogFileName, "+a") as logfile:
+            logfile.write(response+"\n")
     # Check if we entered a new round to create new pilot list
     currentGroup = js['EVENT']['METADATA']['SECTION']+js['EVENT']['METADATA']['GROUP']
 
@@ -115,16 +117,42 @@ while (True):
         if ReloadDataframe:
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
-        generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
         generateStartGridImage(currentRound, outputPath=Path(LiveBasePath, "StartGrid.png"))
+        if AutomateOBS:
+            OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie_T_"], ForceDuration = 10, Block = True)
         try:
-            shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
-            shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
+            if currentRound.picPath is not None:
+                shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
+            if currentRound.bannerPath is not None:
+                shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
         except:
             print("Cannot find the requested picture. Serie picture not updated.")
     else:
         newRound = False
         currentRound.update(**js['EVENT'])
+
+        if AutomateOBS:
+            match currentRound.RaceState:
+                case 4: #Manche terminée
+                    if currentRound.RaceEnd:
+                        print("Round is over, Displaying results")
+                        generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+                        OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
+                case 5: #Manche terminée
+                    print("Round is over, Displaying results")
+                    generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+                    OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
+                case 2: #Départ en attente
+                    print("Waiting race to start. Showing grid.")
+                    if 10 <= sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":")))) <= 25:
+                        OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille"], ForceDuration = 15)
+                    else:
+                        OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Vue_Plafond_A_30_45"], ForceDuration = 15)
+                case 1: #Manche en cours
+                    OBS.updateScene()
+
+
+    generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
 
     #add regular dataframeSave
     autoSaveDF=False
@@ -164,7 +192,7 @@ while (True):
             file.write(rankingHtmlBody)
 
         if generateHTML_PNG:
-            htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,500))
+            htmlToPng(html_string=rankingHtmlBody, css_file="Style.css", FilePath=RankingImagePath, size=(416,800))
 
         #Save HTML file
         with open(rankingServerHTMLPath,'w', encoding='utf-8') as file: 

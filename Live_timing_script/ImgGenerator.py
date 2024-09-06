@@ -79,6 +79,8 @@ def generateMainRankingImage(RankingList:Round, backgroundImagePath:Path, buggyI
     drawImg.text((90,213), RankingList.serie_pretty, font=SerieStyle.font, fill=SerieStyle.color)
 
     for index, pilot in enumerate(RankingList.pilotList):
+        if index>=len(coordinatesDict["buggy"]):
+            break
         try:
             backgroundImg.paste(buggyImg, coordinatesDict["buggy"][index], buggyImg)
         except IndexError:
@@ -89,50 +91,67 @@ def generateMainRankingImage(RankingList:Round, backgroundImagePath:Path, buggyI
         try:
             pilotName = pilot.pilot.split(" ")
             drawImg.text(coordinatesDict["Name"][index], pilotName[0][:12].upper(), font=NameStyle.font, fill=NameStyle.color)
-            drawImg.text(coordinatesDict["LastName"][index], pilotName[1][:18], font=LastNameStyle.font, fill=LastNameStyle.color)
+            if len(pilotName)>1:
+                drawImg.text(coordinatesDict["LastName"][index], pilotName[1][:18], font=LastNameStyle.font, fill=LastNameStyle.color)
         except Exception as e:
             print(e)
         
     backgroundImg.save(outputPath)
 
 StartGridCoordinates=[
-    (100,800),
-    (200,600),
-    (300,500),
-    (400,700),
-    (500,600),
-    (600,800),
-    (700,300),
-    (800,200),
-    (900,100),
-    (1000,500),
-    (1100,600),
+    (50,800),#1
+    (150,650),#2
+    (325,500),#3
+    (550,300),#4
+    (775,375),#5
+    (950,475),#6
+    (1250,600),#7
+    (1425,500),#8
+    (1525,425),#9
+    (1625,350),#10
+    (1750,375),#11
+    (1700,150)#12
  ]
 
-def generateStartGridImage(RankingList:Round, outputPath:Path, resize_dimensions=(1920, 1080)):
-    backgroundImg = Image.new('RGBA', resize_dimensions, (255, 255, 255, 0))
 
+def generateStartGridImage(RankingList, outputPath, resize_dimensions=(1920, 1080)):
+    backgroundImg = Image.new('RGBA', resize_dimensions, (255, 255, 255, 0))
     drawImg = ImageDraw.Draw(backgroundImg)
 
-    drawImg.text((90,127), RankingList.category_pretty, font=CategoryStyle.font, fill=CategoryStyle.color)
-    drawImg.text((90,213), RankingList.serie_pretty, font=SerieStyle.font, fill=SerieStyle.color)
+    # # Draw category and series text
+    # drawImg.text((90,127), RankingList.category_pretty, font=CategoryStyle.font, fill=CategoryStyle.color)
+    # drawImg.text((90,213), RankingList.serie_pretty, font=SerieStyle.font, fill=SerieStyle.color)
 
-    for index in range(11):
-        x,y = StartGridCoordinates[index]
+    margin = 10
 
+    for index, pilot in enumerate(RankingList.pilotList):
+        x, y = StartGridCoordinates[index]
         try:
-            drawImg.text((x,y), str(index), font=NameStyle.font, fill=NameStyle.color)
+            full_name = pilot.pilot.strip()  # Strips any leading/trailing whitespace
+            FirstName, LastName = full_name.split(maxsplit=1) if " " in full_name else (full_name, "")
+            FirstName = f"{index+1} {FirstName[:12].upper()}"
+            LastName = f"    {LastName[:18]}" if LastName != "" else ""
+
+            # Get the bounding box for the first and second lines of text
+            first_line_bbox = drawImg.textbbox((x, y), FirstName, font=NameStyle.font)
+            second_line_bbox = drawImg.textbbox((x, y), LastName, font=LastNameStyle.font)
+
+            # Calculate the width and height of the enclosing rectangle
+            rect_width = max(first_line_bbox[2] - first_line_bbox[0], second_line_bbox[2] - second_line_bbox[0]) + 2 * margin
+            rect_height = (first_line_bbox[3] - first_line_bbox[1]) + (second_line_bbox[3] - second_line_bbox[1]) + margin * 2
+
+            # Draw a rounded rectangle with a 15px corner radius
+            drawImg.rounded_rectangle([x - margin, y - margin, x + rect_width, y + rect_height],
+                                      fill=ImageColor.getrgb("#1a3459"), outline=ImageColor.getrgb("#60c5c7"), width=2, radius=10)
+
+
+            # Draw the first and second lines of text inside the rectangle
+            drawImg.text((x, y), FirstName, font=NameStyle.font, fill=NameStyle.color)
+            drawImg.text((x, y + (first_line_bbox[3] - first_line_bbox[1]) + margin), LastName, font=LastNameStyle.font, fill=LastNameStyle.color)
+
         except Exception as e:
             print(e)
-        
-    # for index, pilot in enumerate(RankingList.pilotList):
-    #     x,y = StartGridCoordinates[index]
-
-    #     try:
-    #         pilotName = pilot.pilot.split(" ")
-    #         drawImg.text((x,y), str(index), font=NameStyle.font, fill=NameStyle.color)
-    #         drawImg.text((x,y+20), pilotName[1][:18], font=LastNameStyle.font, fill=LastNameStyle.color)
-    #     except Exception as e:
-    #         print(e)
-        
+    
+    # Save the image
     backgroundImg.save(outputPath)
+

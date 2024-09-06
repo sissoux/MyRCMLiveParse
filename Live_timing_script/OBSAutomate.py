@@ -4,7 +4,7 @@ import random
 import re
 
 class transition():
-    glissement = "Glissemment"
+    glissement = "Glissement"
     fondu = "Fondu"
 
 class Scene():
@@ -20,11 +20,10 @@ class Scene():
 
 class OBS_Auto():
     ManualSceneList = {
-        "Vue_Grille"        :Scene("Table", 30,75, autoSwitch=False), 
-        "Vue_Interview"     :Scene("Table", 30,75, autoSwitch=False, Transition=transition.glissement), 
-        "SerieDisplay"      :Scene("Table", 30,75, autoSwitch=False), 
-        "Attente"           :Scene("Table", 30,75, autoSwitch=False), 
-        "Resultats"         :Scene("Table", 30,75, autoSwitch=False)
+        "V_Grille"        :Scene("V_Grille", 30,75, autoSwitch=False), 
+        "Serie_T_"           :Scene("Serie_T_", 30,75, autoSwitch=False), 
+        "V_Vue_Plafond_A_30_45"           :Scene("V_Vue_Plafond_A_30_45", 30,75, autoSwitch=False), 
+        "Resultats"         :Scene("Resultats", 30,75, autoSwitch=False, Transition=transition.glissement)
     }
     autoSceneList = None
 
@@ -51,6 +50,7 @@ class OBS_Auto():
         self.preventPodium = True
         self.AutoSwitchDelay = 0
         self.fromScene = None
+        self.temporaryBlock = False
 
     def setScene(self, scene:Scene):
         try:
@@ -75,23 +75,31 @@ class OBS_Auto():
             except ValueError:
                 print("Error while parsing scene durations, not adding scene to list.")
             
-    def updateScene(self, ForceScene=None, ForceDuration=30):
-        if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None):
+    def updateScene(self, ForceScene=None, ForceDuration=30, Block=False):
+        if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None and not (Block or self.temporaryBlock)):
             self.previousTime = time.time()
+            if Block: 
+                self.temporaryBlock = Block
 
             if "_B_" in self.OBS.get_current_program_scene().scene_name:
                 print("Currently in blocking scene, no auto switch. Check again in 5s.")
                 self.AutoSwitchDelay = 5
                 return
             
-            self.updateAutoSceneList(self.OBS.get_scene_list().scenes)
-            if self.verbose and self.fromScene is not None:
-                print(f"Switching from {self.fromScene.name}", end='')
+            if "_T_" in self.OBS.get_current_program_scene().scene_name:
+                if not self.temporaryBlock:
+                    self.temporaryBlock = True
+                    print("Currently in temporary blocking scene, no auto switch. Check again in 5s.")
+                    self.AutoSwitchDelay = 5
+                    return
+                else :
+                    self.temporaryBlock = False
+            
             if ForceScene is not None:
                 self.toScene = ForceScene
-                self.previousTime = time.time()
                 self.AutoSwitchDelay=ForceDuration
             else:
+                self.updateAutoSceneList(self.OBS.get_scene_list().scenes)
                 self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
                 while (not self.toScene.allowedAutoSwitch) and self.fromScene == self.toScene:
                     self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
@@ -102,7 +110,7 @@ class OBS_Auto():
                 self.setScene(self.toScene)
 
             if self.verbose:
-                print(f" to {self.toScene.name}. Next switch in {self.AutoSwitchDelay}s.")
+                print(f"Switching from {self.fromScene.name} to {self.toScene.name}. Next switch in {self.AutoSwitchDelay}s.")
 
     def showStatistics(self, ForceDuration=30):
         self.updateScene(ForceScene=self.ManualSceneList["StatisticsDisplay"], ForceDuration=ForceDuration)
