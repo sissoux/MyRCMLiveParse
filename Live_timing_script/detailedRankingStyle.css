@@ -23,7 +23,7 @@
 /* Use the Montserrat font in the table, fallback to Arial and then sans-serif */
 table {
   font-family: 'Montserrat', Arial, sans-serif;
-  width: 1500px;
+  /*width: 1500px;*/
   /* Fixed table width */
   font-size: 30px;
   border-collapse: separate;
@@ -58,7 +58,7 @@ td {
 /* Use bold font in table headers */
 th {
   background-color: #262626;
-  color: white;
+  color: cornflowerblue;
   font-weight: bold;
   /* Use Montserrat Bold */
   font-size: 28px;
@@ -79,7 +79,7 @@ td:nth-child(2) {
   font-family: 'Montserrat', Arial, sans-serif;
   font-weight: 900;
   font-style: italic;
-  background-color: #C5DCEB;
+  background-color: darkblue;
   border: 1px solid black;
   border-radius: 8px;
 }

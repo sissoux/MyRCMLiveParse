@@ -39,6 +39,17 @@ def getHeaderDetailedRanking():
     tab_entete = '''
     <body style="background-image: url('BackGround.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;">
         <table>
+            <colgroup>
+                <col style="width:40px" />
+                <col style="width:40px" />
+                <col style="width:500px" />
+                <col style="width:70px" />
+                <col style="width:90px" />
+                <col style="width:90px" />
+                <col style="width:90px" />
+                <col style="width:150px" />
+                <col style="width:50px" />
+            </colgroup>
             <thead>
                 <!-- The header will be dynamically loaded here using AJAX -->
                 <tr><td>Loading...</td></tr>
@@ -85,7 +96,7 @@ def generateTableHTML(Serie, RaceTime, pilots):
     # Create the <thead> with dynamic Serie and RaceTime
     thead = f'''
     <tr>
-        <td colspan="9" style="height: 60px; font-size: 35px; font-family: Montserrat;">{Serie}<br>{RaceTime}</td>
+        <td colspan="9" style="height: 60px; font-size: 35px; color: royalblue font-family: Montserrat;">{Serie}<br>{RaceTime}</td>
     </tr>
     <tr>
         <th></th>
@@ -96,7 +107,7 @@ def generateTableHTML(Serie, RaceTime, pilots):
         <th>Best</th>
         <th>Med</th>
         <th>Prevision</th>
-        <th>Tendance</th>
+        <th>\u2195</th>
     </tr>
     '''
 
