@@ -1,32 +1,61 @@
 from PilotClasses import Pilot
 from pathlib import Path
 
-def getHeaderDetailedRanking(RaceTime="", Serie=""):
+def getHeaderDetailedRanking():
+    # Basic HTML structure with the head section
     tab_htmlbody = '<!DOCTYPE html><html>'
-    tab_htmlbody += f'<head><title>Ranking MyRCM - {Serie}</title>'
+    tab_htmlbody += '<head><title>Ranking MyRCM</title>'
     tab_htmlbody += '<meta charset="UTF-8">'
-    tab_htmlbody += "<script>function autoRefresh() {window.location = window.location.href;}setInterval('autoRefresh()', 300);</script>"
+    
+    # Add the AJAX script to fetch both the header and table content dynamically
+    tab_htmlbody += """
+    <script>
+        function updateTable() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/updateTable', true);  // Request the table content from the server
+
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    // Parse the response (assuming it's a JSON with both thead and tbody)
+                    var data = JSON.parse(xhr.responseText);
+                    
+                    // Update the thead and tbody with new content
+                    document.querySelector('thead').innerHTML = data.thead;
+                    document.querySelector('tbody').innerHTML = data.tbody;
+                }
+            };
+            xhr.send();
+        }
+        // Automatically refresh the table and header every 10 seconds
+        setInterval(updateTable, 500);
+    </script>
+    """
+    
+    # Link to the CSS file for styling
     tab_htmlbody += '<link href="detailedRankingStyle.css" rel="stylesheet">'
     tab_htmlbody += '</head>'
 
-    # Add body tag with background and centered table style
-    tab_entete = f'<body style="background-image: url(\'BackGround.jpg\'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;">'
-    tab_entete += f'<table><thead><tr><td colspan="9" style="height: 60px;font-size: 35px;font-family: Montserrat;">{Serie}<br>{RaceTime}</td></tr></thead>'
-
-    # Table headers
-    tab_entete += '<thead><tr><th></th>\
-        <th>N°</th>\
-        <th>Pilote</th>\
-        <th>Tours</th>\
-        <th>Last</th>\
-        <th>Best</th>\
-        <th>Med</th>\
-        <th>Prevision</th>\
-        <th>Tendance</th>\
-        </tr></thead><tbody>'
-
+    # Body tag with background and centered table style
+    tab_entete = '''
+    <body style="background-image: url('BackGround.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;">
+        <table>
+            <thead>
+                <!-- The header will be dynamically loaded here using AJAX -->
+                <tr><td>Loading...</td></tr>
+            </thead>
+            <tbody>
+                <!-- The table body will be dynamically loaded here using AJAX -->
+                <tr><td>Loading...</td></tr>
+            </tbody>
+        </table>
+    </body>
+    </html>
+    '''
+    
+    # Concatenate the body part with the header and return it
     tab_htmlbody += tab_entete
     return tab_htmlbody
+
 
 def getPilotDetailedRanking(pilot, showPilotCountryFlag=False):
     style = 'style="color: red;"' if pilot.newPosition else ''
@@ -39,7 +68,7 @@ def getPilotDetailedRanking(pilot, showPilotCountryFlag=False):
         background-size: 100% 100%;\
         background-image: url(Ressources/{pilot.countryicon});"' if showPilotCountryFlag else style
     
-    # POS / CAR / PILOT / NLAPS / Last / Best / Med / Forecast / Trend  
+    # POS / CAR / PILOT / NLAPS / Last / Best / Med / Forecast / Trend
     return f"<tr>\
         <td {style}>{pilot.position+1}</td>\
         <td {NumberStyle}>{pilot.vehicle}</td>\
@@ -51,6 +80,35 @@ def getPilotDetailedRanking(pilot, showPilotCountryFlag=False):
         <td {style}>{pilot.forecast_short}</td>\
         <td {style}>{pilot.trend}</td>\
         </tr>"
+
+def generateTableHTML(Serie, RaceTime, pilots):
+    # Create the <thead> with dynamic Serie and RaceTime
+    thead = f'''
+    <tr>
+        <td colspan="9" style="height: 60px; font-size: 35px; font-family: Montserrat;">{Serie}<br>{RaceTime}</td>
+    </tr>
+    <tr>
+        <th></th>
+        <th>N°</th>
+        <th>Pilote</th>
+        <th>Tours</th>
+        <th>Last</th>
+        <th>Best</th>
+        <th>Med</th>
+        <th>Prevision</th>
+        <th>Tendance</th>
+    </tr>
+    '''
+
+    # Create the <tbody> by iterating over pilots
+    tbody = "<tbody>"
+    for pilot in pilots:
+        tbody += getPilotDetailedRanking(pilot, showPilotCountryFlag=False)
+    tbody += "</tbody>"
+
+    # Serve thead and tbody as a JSON response
+    return {"thead": thead, "tbody": tbody}
+
 
 
 

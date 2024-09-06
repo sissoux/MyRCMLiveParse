@@ -31,14 +31,14 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = False
+LocalOnly = True
 generateHTML_PNG = True
 UseWebSocket = False
 
 LogInputData = True
 LogFileName = Path(f"RaceDataLog-{datetime.datetime.now().strftime("%d%b-%H%M%S")}.txt")
 
-AutomateOBS = True
+AutomateOBS = False
 
 ReloadDataframe = False
 
@@ -166,11 +166,12 @@ while (True):
     pilotes = []
     
     rankingHtmlBody = generateHTML.getHeaderRanking(RaceTime, showBestLap=False)
-    rankingServerHTMLBody = generateHTML.getHeaderDetailedRanking(RaceTime, Serie=currentRound.round_pretty)
+    rankingServerHTMLBody = generateHTML.getHeaderDetailedRanking()
+
+    DynamicTableHTMLContent = generateHTML.generateTableHTML(Serie=currentRound.round_pretty, RaceTime=RaceTime, pilots=currentRound.pilotList)
 
     for pilot in currentRound.pilotList:
         rankingHtmlBody += generateHTML.getPilotRanking(pilot, showBestLap=False)
-        rankingServerHTMLBody += generateHTML.getPilotDetailedRanking(pilot)
     
     rankingHtmlBody += '</tbody></table></body>'
     rankingHtmlBody += '</html>'
@@ -194,6 +195,11 @@ while (True):
         #Save HTML file
         with open(rankingServerHTMLPath,'w', encoding='utf-8') as file: 
             file.write(rankingServerHTMLBody)
+
+        with open(Path(RankingServerPath,"table_content.json"),'w', encoding='utf-8') as file: 
+            json.dump(DynamicTableHTMLContent, file)
+
+        
 
     except FileNotFoundError:
         print("Problem writing files.\n{e}")
