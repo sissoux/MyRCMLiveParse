@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 # Define the folder to serve index.html and other static assets
-web_dir = Path("./")
+web_dir = Path("C:/RCPARK_Live/RankingHTML")
 json_file_path = web_dir / "table_content.json"
 
 # Ensure the JSON file exists
