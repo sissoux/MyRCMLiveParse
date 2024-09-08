@@ -31,14 +31,14 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = True
+LocalOnly = False
 generateHTML_PNG = True
 UseWebSocket = False
 
 LogInputData = True
 LogFileName = Path(f"RaceDataLog-{datetime.datetime.now().strftime("%d%b-%H%M%S")}.txt")
 
-AutomateOBS = False
+AutomateOBS = True
 
 ReloadDataframe = False
 
@@ -137,7 +137,7 @@ while (True):
                 ShowedNewRound = OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie_T_"], ForceDuration = 10, Block = True)
             match currentRound.RaceState:
                 case 4|5: #Manche terminée
-                    if currentRound.RaceEnd:
+                    if True: #currentRound.RaceEnd:
                         if not GeneratedResults:
                             GeneratedResults = True
                             generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
@@ -146,10 +146,20 @@ while (True):
                 case 2|0: #Départ en attente
                     print("Waiting race to start. Showing grid.")
                     countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
-                    OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if 5 <= countdown_seconds <= 30 else "V_Vue_Plafond_A_30_45"], ForceDuration=15)
+                    if "finale" in currentRound.round_pretty.lower():
+                        OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], ForceDuration=15)
+                    else:
+                        OBS.updateScene()
                 case 1: #Manche en cours
                     GeneratedResults = False
                     OBS.updateScene()
+                case _:
+                    if not GeneratedResults:
+                        print("Generating results")
+                        GeneratedResults = True
+                        generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+                        
+
 
     #add regular dataframeSave
     autoSaveDF=False

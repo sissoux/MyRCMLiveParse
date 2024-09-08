@@ -155,7 +155,7 @@ class Round:
     RoundDict = {
         "100" : "4x2 Standard",
         "101" : "4x2 Modifié",
-        "102" : "4xd Modifié",
+        "102" : "4x4 Modifié",
         "103" : "Truck",
         "104" : "Vintage",
         "105" : "Rookie",
