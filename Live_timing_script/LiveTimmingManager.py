@@ -31,14 +31,14 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = False
+LocalOnly = True
 generateHTML_PNG = True
 UseWebSocket = False
 
-LogInputData = True
+LogInputData = False
 LogFileName = Path(f"RaceDataLog-{datetime.datetime.now().strftime("%d%b-%H%M%S")}.txt")
 
-AutomateOBS = True
+AutomateOBS = False
 
 ReloadDataframe = False
 
@@ -47,10 +47,10 @@ if AutomateOBS:
     
 
 PublisherServer_IP = "127.0.0.1"
-LiveBasePath = Path("C:/RCPARK_Live/Live Course 12/")
+LiveBasePath = Path("C:/RCPARK_Live/Live Course 13/")
 RankingServerPath = Path("C:/RCPARK_Live/RankingHTML")
 # LiveBasePath = Path("/Volumes/charlesmerlen/Sites/RC")
-GdriveBasePath = Path("G:/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
+GdriveBasePath = Path("G:/Mon Drive/Affiches-Graphisme/Course/Course 13 - Oct 2024\YT LIVE")
 # GdriveBasePath = Path("/Users/charlesmerlen/Library/CloudStorage/GoogleDrive-rcpark59193@gmail.com/Mon Drive/Affiches-Graphisme/Course/Course 12 - Sept 2024/YT LIVE")
 LiveBasePath.mkdir(parents=True, exist_ok=True)
 RankingServerPath.mkdir(parents=True, exist_ok=True)
@@ -62,7 +62,7 @@ roundFilePath =     Path(LiveBasePath, "Round.txt")
 raceTimeFilePath =  Path(LiveBasePath, "temps.txt")
 TeamLogoPath =      Path(LiveBasePath, "LogoTeam")
 RankingImagePath =  Path(LiveBasePath, "Ranking.png")
-# RankingImagePath =  Path("Ranking.png")
+RankingImagePath =  Path("Ranking.png")
 # rankingServerHTMLPath = Path("index.html")
 
 #Copy style files on the correct location to be used by Live and HTML Server
@@ -120,14 +120,17 @@ while (True):
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
         ShowedNewRound = False
-        generateStartGridImage(currentRound, outputPath=Path(LiveBasePath, "StartGrid.png"))
-        try:
-            if currentRound.picPath is not None:
-                shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
-            if currentRound.bannerPath is not None:
-                shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
-        except:
-            print("Cannot find the requested picture. Serie picture not updated.")
+        generateMainPreRaceGridImage(currentRound, outputPath=Path(LiveBasePath, "NewRoundScreen.png"), backgroundImagePath=Path(GdriveBasePath,"ScreenStartLineVide2.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"))
+        shutil.copyfile(Path(LiveBasePath, "NewRoundScreen.png"), Path(LiveBasePath, "GeneratedImages", f"{currentRound.category_pretty}-{currentRound.serie_pretty}-NewRoundScreen.png"))
+        generateMainResultImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenPodiumVide.png"), outputPath=Path("Result.png"))                      
+        generateStartGridOverlay(currentRound, outputPath=Path(LiveBasePath, "StartGridOverlay.png"))
+        # try:
+        #     if currentRound.picPath is not None:
+        #         shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
+        #     if currentRound.bannerPath is not None:
+        #         shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
+        # except:
+        #     print("Cannot find the requested picture. Serie picture not updated.")
     else:
         newRound = False
         currentRound.update(**js['EVENT'])
@@ -140,7 +143,7 @@ while (True):
                     if True: #currentRound.RaceEnd:
                         if not GeneratedResults:
                             GeneratedResults = True
-                            generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+                            generateMainResultImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
                         print("Round is over, Displaying results")
                         OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
                 case 2|0: #Départ en attente
@@ -154,12 +157,12 @@ while (True):
                     GeneratedResults = False
                     OBS.updateScene()
                 case _:
-                    if not GeneratedResults:
-                        print("Generating results")
-                        GeneratedResults = True
-                        generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
-                        
-
+                    if True: #currentRound.RaceEnd:
+                        if not GeneratedResults:
+                            GeneratedResults = True
+                            generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
+                        print("Round is over, Displaying results")
+                        OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
 
     #add regular dataframeSave
     autoSaveDF=False
