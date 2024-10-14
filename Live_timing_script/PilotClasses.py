@@ -6,6 +6,7 @@ from pathlib import Path
 from enum import StrEnum
 import pandas as pd
 from copy import deepcopy
+from Utils import time_str_to_seconds
 
 class Teams():
     class Names(StrEnum):
@@ -138,13 +139,12 @@ class Pilot:
         else:
             return df
 
-    
     def updateTime(self):
         try:
-            self.besttime_s = float(self.besttime)
+            self.besttime_s = time_str_to_seconds(self.besttime)
             # self.besttimen_s = float(self.besttimen)
-            self.laptime_s = float(self.laptime)
-            self.mediumtime_s = float(self.mediumtime)
+            self.laptime_s = time_str_to_seconds(self.laptime)
+            self.mediumtime_s = time_str_to_seconds(self.mediumtime)
             # m, s = map(float, str(self.absoluttime).split(":"))
             # s = int(s)
             # self.absoluttime_s = datetime.timedelta(minutes=m, seconds=float(s))
