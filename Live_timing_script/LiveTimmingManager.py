@@ -65,6 +65,10 @@ RankingImagePath =  Path(LiveBasePath, "Ranking.png")
 RankingImagePath =  Path("Ranking.png")
 # rankingServerHTMLPath = Path("index.html")
 
+preGridScreenGen = PreStartScreenGen(LiveBasePath, GdriveBasePath, "ScreenStartLineVide2.png", "Buggy.png", "NewRoundScreen.png")
+resultScreenGen = ResultScreenGen(LiveBasePath, GdriveBasePath, "ScreenPodiumVide.png", "Result.png")
+gridOverlayGen = GridOverlayScreenGen(LiveBasePath, "StartGridOverlay.png") 
+
 #Copy style files on the correct location to be used by Live and HTML Server
 shutil.copyfile("Tableau.css", Path(LiveBasePath, 'Tableau.css'))
 shutil.copyfile("style.css", Path(LiveBasePath, 'style.css'))
@@ -119,18 +123,17 @@ while (True):
         if ReloadDataframe:
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
-        ShowedNewRound = False
-        generateMainPreRaceGridImage(currentRound, outputPath=Path(LiveBasePath, "NewRoundScreen.png"), backgroundImagePath=Path(GdriveBasePath,"ScreenStartLineVide2.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"))
-        shutil.copyfile(Path(LiveBasePath, "NewRoundScreen.png"), Path(LiveBasePath, "GeneratedImages", f"{currentRound.category_pretty}-{currentRound.serie_pretty}-NewRoundScreen.png"))
-        generateMainResultImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenPodiumVide.png"), outputPath=Path("Result.png"))                      
-        generateStartGridOverlay(currentRound, outputPath=Path(LiveBasePath, "StartGridOverlay.png"))
-        # try:
-        #     if currentRound.picPath is not None:
-        #         shutil.copyfile(Path(LiveBasePath,currentRound.picPath), Path(LiveBasePath, 'seriePic.JPG'))
-        #     if currentRound.bannerPath is not None:
-        #         shutil.copyfile(Path(LiveBasePath,currentRound.bannerPath), Path(LiveBasePath, 'banner.JPG'))
-        # except:
-        #     print("Cannot find the requested picture. Serie picture not updated.")
+        ShowedNewRound = False 
+
+        preGridScreenGen.generate(currentRound)
+        preGridScreenGen.save(currentRound,Path(LiveBasePath, "GridImages"))
+
+        resultScreenGen.generate(currentRound)
+        resultScreenGen.save(currentRound,Path(LiveBasePath, "ResultImages"))
+           
+        gridOverlayGen.generate(currentRound)
+        exit()
+
     else:
         newRound = False
         currentRound.update(**js['EVENT'])
