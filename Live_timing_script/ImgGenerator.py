@@ -189,10 +189,8 @@ def generateMainPreRaceGridImage(RankingList:Round, backgroundImagePath:Path, bu
         drawImg.text(coordinatesDict["Position"][index], f"{index+1}", font=PositionStyle.font, fill=PositionStyle.color, anchor="rt")
         
         try:
-            pilotName = pilot.pilot.split(" ")
-            drawImg.text(coordinatesDict["Name"][index], pilotName[0][:12].upper(), font=NameStyle.font, fill=NameStyle.color)
-            if len(pilotName)>1:
-                drawImg.text(coordinatesDict["LastName"][index], pilotName[1][:18], font=LastNameStyle.font, fill=LastNameStyle.color)
+            drawImg.text(coordinatesDict["Name"][index], pilot.LastName[:12].upper(), font=NameStyle.font, fill=NameStyle.color)
+            drawImg.text(coordinatesDict["LastName"][index], pilot.FirstName[:18], font=LastNameStyle.font, fill=LastNameStyle.color)
         except Exception as e:
             print(e)
         
@@ -205,9 +203,9 @@ def generateMainPreRaceGridImage(RankingList:Round, backgroundImagePath:Path, bu
 def generateMainResultImage(RankingList:Round, backgroundImagePath:Path, outputPath:Path, resize_dimensions=(1920, 1080), buggySize=(230,130)):
     
     NameCoord = [
-    (1280, 135),
+    (1280, 155),
     (955, 195),
-    (1595, 230),
+    (1595, 235),
     (935, 500)
 ]
     yOffset=54
@@ -215,7 +213,7 @@ def generateMainResultImage(RankingList:Round, backgroundImagePath:Path, outputP
     ResultCategoryStyle = TextStyle(font=Montserrat_Black_file, color=ImageColor.getrgb("white"), size=55)
     ResultSerieStyle = TextStyle(font=Montserrat_Black_file, color=ImageColor.getrgb("#dfdfdf"), size=22)
     
-    PodiumNameStyle = TextStyle(font=Montserrat_Black_file, color=ImageColor.getrgb("white"), size=40)
+    PodiumNameStyle = TextStyle(font=Montserrat_Black_file, color=ImageColor.getrgb("white"), size=36)
     PodiumLastNameStyle = TextStyle(font=Montserrat_Black_file, color=ImageColor.getrgb("#dfdfdf"), size=30)
     PodiumStatsStyle = TextStyle(font=Montserrat_Italic_file, color=ImageColor.getrgb("#dfdfdf"), size=25)
 
@@ -232,12 +230,9 @@ def generateMainResultImage(RankingList:Round, backgroundImagePath:Path, outputP
 
     for index, pilot in enumerate(RankingList.pilotList[:3]):
         baseX, baseY=NameCoord[index]
-        try:
-            pilotName = pilot.pilot.split(" ")
-            
-            if len(pilotName)>1:
-                draw_centered_text(drawImg, (baseX, baseY), pilotName[1][:12].upper(), font=PodiumNameStyle.font, fill=PodiumNameStyle.color)
-            draw_centered_text(drawImg, (baseX, baseY+42), pilotName[0][:15].upper(), font=PodiumLastNameStyle.font, fill=PodiumLastNameStyle.color)
+        try:            
+            draw_centered_text(drawImg, (baseX, baseY), pilot.LastName[:13].upper(), font=PodiumNameStyle.font, fill=PodiumNameStyle.color)
+            draw_centered_text(drawImg, (baseX, baseY+42), pilot.FirstName[:15].upper(), font=PodiumLastNameStyle.font, fill=PodiumLastNameStyle.color)
             draw_centered_text(drawImg, (baseX, baseY+78), f"{pilot.laps} LAPS / BEST : {pilot.besttime_s:0.2f}", font=PodiumStatsStyle.font, fill=PodiumStatsStyle.color)
         except Exception as e:
             print(e)
@@ -248,7 +243,7 @@ def generateMainResultImage(RankingList:Round, backgroundImagePath:Path, outputP
         
         try:
             draw_left_middle_text(drawImg, (baseX, baseY), trim_text(pilot.pilot, 18).upper(), font=ListNameStyle.font, fill=ListNameStyle.color)
-            draw_right_middle_text(drawImg, (1700, baseY), f"{pilot.laps} LAPS / BEST : {pilot.besttime_s:0.2f}", font=PodiumStatsStyle.font, fill=PodiumStatsStyle.color)
+            draw_right_middle_text(drawImg, (1700, baseY+4), f"{pilot.laps} LAPS / BEST : {pilot.besttime_s:0.2f}", font=PodiumStatsStyle.font, fill=PodiumStatsStyle.color)
         except Exception as e:
             print(e)
         

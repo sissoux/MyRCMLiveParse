@@ -101,6 +101,9 @@ class Pilot:
         self.position = position
         self.updateTime()
 
+        self.LastName = " ".join(self.pilot.split(" ")[:-1])
+        self.FirstName = self.pilot.split(" ")[-1]
+
         try:
             self.countryicon = self.CountryDict[self.country]+".png"
         except KeyError:
