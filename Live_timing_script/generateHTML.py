@@ -69,7 +69,7 @@ def getHeaderDetailedRanking():
 
 
 def getPilotDetailedRanking(pilot, showPilotCountryFlag=False):
-    style = 'style="color: red;"' if pilot.newPosition else ''
+    style = 'style="color: lightgreen;"' if pilot.newPosition else ''
     lapTimeStyle = 'style="color: gold;"' if pilot.newBest else style
     NumberStyle = f'style="color: #fff;text-shadow:\
             1px 1px 0 #000,\
@@ -148,7 +148,7 @@ def getHeaderRanking(RaceTime="", showBestLap=False):
     return tab_htmlbody
 
 def getPilotRanking(pilot:Pilot, showBestLap=False, showPilotCountryFlag=False, extended=False):
-    style = 'style="color: red;"' if pilot.newPosition else ''
+    style = 'style="color: lightgreen;"' if pilot.newPosition else ''
     lapTimeStyle = 'style="color: gold;"' if pilot.newBest else style
     NumberStyle = f'style="color: #fff;text-shadow:\
             1px 1px 0 #000,\
