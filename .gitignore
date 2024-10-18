@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# HTML generated files
+*.html
+
 # C extensions
 *.so
 
@@ -123,7 +126,7 @@ celerybeat.pid
 .env
 .venv
 env/
-venv1/
+*venv*/
 ENV/
 env.bak/
 venv.bak/

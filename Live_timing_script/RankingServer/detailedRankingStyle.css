@@ -61,7 +61,7 @@ th {
   color: cornflowerblue;
   font-weight: bold;
   /* Use Montserrat Bold */
-  font-size: 25px;
+  font-size: 28px;
   font-family: 'Montserrat', Arial, sans-serif;
 }
 
@@ -94,7 +94,6 @@ td:nth-child(3) {
   text-overflow: ellipsis;
   padding-left: 10px;
   font-family: 'Montserrat black', Arial, sans-serif;
-  font-size: 24px;
 }
 
 th:nth-child(4),
