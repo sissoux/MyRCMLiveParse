@@ -158,7 +158,7 @@ def getHeaderLightRanking():
     # Body tag with centered table style
     tab_entete = '''
     <body style="background-color: transparent; display: flex; justify-content: center; align-items: flex-start; height: 100vh; padding-top: 20px;">
-        <table>
+        <table style="border-collapse: collapse; width: 600px; max-width: 100%; text-align: center;">
             <colgroup>
                 <col style="width:40px" />
                 <col style="width:40px" />
@@ -209,7 +209,7 @@ def generateLightTableHTML(Serie, RaceTime, pilots):
         <td colspan="9" style="height: 60px; font-size: 35px; color: royalblue font-family: Montserrat;">{RaceTime}</td>
     </tr>
     <tr>
-        <th>Pos</th>
+        <th>#</th>
         <th>N°</th>
         <th>Equipe</th>
         <th>Tours</th>
