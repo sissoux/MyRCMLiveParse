@@ -2,15 +2,15 @@ import json
 import requests
 import time
 from pathlib import Path
-from PilotClasses import Round
 import shutil
 from Websocket_MyRCM import *
+from PilotClasses import Round
 import generateHTML
-from ImgGenerator import *
 import argparse
 import http.server
 import socketserver
 import os
+import threading
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="A script with a configurable timeout and HTTP server.")
@@ -21,7 +21,7 @@ timeout = args.t
 port = args.p
 
 LocalOnly = True
-PublisherServer_IP = "127.0.0.1"
+PublisherServer_IP = "192.168.0.6"
 
 # Define the RankingServer directory using Pathlib and ensure it exists
 RankingServerPath = Path.cwd() / "RankingServer"
@@ -29,6 +29,7 @@ RankingServerPath.mkdir(parents=True, exist_ok=True)
 
 # Copy CSS file to the RankingServer folder
 shutil.copyfile("detailedRankingStyle.css", RankingServerPath / 'detailedRankingStyle.css')
+# shutil.copyfile("lightRankingStyle.css", RankingServerPath / 'lightRankingStyle.css')
 
 index = 0
 with open("jsontemplate.txt", 'r', encoding="utf-8") as timefile:
@@ -42,12 +43,13 @@ newRound = False
 # Initialize currentRound with None
 currentRound = None
 
-# In-memory variable to hold the latest generated table content (JSON)
+# In-memory variables to hold the latest generated table content (JSON)
 latest_table_content = {}
+latest_light_table_content = {}
 
 # Function to handle the data fetching and HTML generation
 def update_data():
-    global index, response, Tstart, PreviousGroup, newRound, latest_table_content, currentRound  # Make currentRound global
+    global index, response, Tstart, PreviousGroup, newRound, latest_table_content, latest_light_table_content, currentRound
 
     if Tstart + 5 < time.time():
         Tstart = time.time()
@@ -69,17 +71,15 @@ def update_data():
         print(f"Error parsing response: {e}")
         return
 
-    # Check if we entered a new round to create new pilot list
+    # Check if we entered a new round to create a new pilot list
     currentGroup = js['EVENT']['METADATA']['SECTION'] + js['EVENT']['METADATA']['GROUP']
     
     if PreviousGroup != currentGroup:
         PreviousGroup = currentGroup
-        # Initialize currentRound only when entering a new round
         currentRound = Round(**js['EVENT'])
         newRound = True
     else:
         newRound = False
-        # Ensure currentRound is initialized before updating it
         if currentRound is not None:
             currentRound.update(**js['EVENT'])
         else:
@@ -90,15 +90,25 @@ def update_data():
     RaceTime = currentRound.getRaceTime_pretty() if currentRound else "N/A"
     print(f"RaceTime = {RaceTime}")
 
+    # Generate detailed and light ranking HTML pages
     rankingServerHTMLBody = generateHTML.getHeaderDetailedRanking()
     latest_table_content = generateHTML.generateTableHTML(
         Serie=currentRound.round_pretty, RaceTime=RaceTime, pilots=currentRound.pilotList)
+    
+    lightRankingHTMLBody = generateHTML.getHeaderLightRanking()
+    latest_light_table_content = generateHTML.generateLightTableHTML(
+        pilots=currentRound.pilotList)
 
     try:
-        # Save HTML file (for browser display) using Pathlib and absolute path
+        # Save detailed HTML file (index.html)
         index_html_path = RankingServerPath / "index.html"
         with index_html_path.open('w', encoding='utf-8') as file:
             file.write(rankingServerHTMLBody)
+
+        # Save light ranking HTML file (light.html)
+        light_html_path = RankingServerPath / "light.html"
+        with light_html_path.open('w', encoding='utf-8') as file:
+            file.write(lightRankingHTMLBody)
 
     except FileNotFoundError as e:
         print(f"Problem writing files: {e}")
@@ -108,17 +118,30 @@ def update_data():
 # HTTP Server Class
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/updateTable':  # Serve updated table content directly from memory
+        if self.path == '/updateTable':  # Serve detailed table content
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
 
-            # Serve the latest table content from memory
+            # Serve the latest detailed table content from memory
             if latest_table_content:
                 self.wfile.write(json.dumps(latest_table_content).encode('utf-8'))
             else:
                 self.wfile.write(json.dumps({"error": "No data available"}).encode('utf-8'))
+        
+        elif self.path == '/updateLightTable':  # Serve light table content
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+
+            # Serve the latest light table content from memory
+            if latest_light_table_content:
+                self.wfile.write(json.dumps(latest_light_table_content).encode('utf-8'))
+            else:
+                self.wfile.write(json.dumps({"error": "No data available"}).encode('utf-8'))
+        
         else:
+            # Serve static files (HTML, CSS)
             super().do_GET()
 
 # Function to run the HTTP server
@@ -137,7 +160,6 @@ def run_server():
 # Main loop to handle data fetching and HTML generation
 if __name__ == "__main__":
     # Run the HTTP server in a separate thread
-    import threading
     server_thread = threading.Thread(target=run_server)
     server_thread.daemon = True
     server_thread.start()

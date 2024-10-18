@@ -1,0 +1,138 @@
+/* Define the Montserrat font from local TTF files */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('fonts/Montserrat/Montserrat-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('fonts/Montserrat/Montserrat-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('fonts/Montserrat/Montserrat-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+/* Use the Montserrat font in the table, fallback to Arial and then sans-serif */
+table {
+  font-family: 'Montserrat', Arial, sans-serif;
+  /*width: 1500px;*/
+  /* Fixed table width */
+  font-size: 30px;
+  border-collapse: separate;
+  background-color: rgba(23, 15, 32, 0.85);
+  /* Semi-transparent background */
+  border-spacing: 2px 2px;
+  border: 7px solid #c5dceb;
+  margin: 0 auto;
+  /* Center the table horizontally */
+  border-radius: 10px;
+  table-layout: fixed;
+  /* Fixes table layout so column widths are respected */
+}
+
+/* Style for rows and cells */
+tr {
+  height: 30px;
+  padding: 3px;
+  border: 1px solid #c5dceb;
+}
+
+th,
+td {
+  padding: 5px;
+  text-align: center;
+  color: lightblue;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 900;
+  /* Fallback to Arial */
+}
+
+/* Use bold font in table headers */
+th {
+  background-color: #262626;
+  color: cornflowerblue;
+  font-weight: bold;
+  /* Use Montserrat Bold */
+  font-size: 28px;
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+
+/* Column-specific styling with fixed widths */
+th:nth-child(1),
+td:nth-child(1) {
+  font-size: 30px;
+  font-weight: bold;
+  width: 40px;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+  /* Fixed width for the second column */
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  background-color: darkblue;
+  border: 1px solid black;
+  border-radius: 8px;
+}
+
+th:nth-child(3),
+td:nth-child(3) {
+  /* Fixed width for name column */
+  text-align: left;
+  font-size: 25px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 10px;
+  font-family: 'Montserrat black', Arial, sans-serif;
+}
+
+th:nth-child(4),
+td:nth-child(4),
+th:nth-child(5),
+td:nth-child(5),
+th:nth-child(6),
+td:nth-child(6),
+th:nth-child(7),
+td:nth-child(7),
+th:nth-child(8),
+td:nth-child(8),
+th:nth-child(9),
+td:nth-child(9) {
+  /* Fixed width for numeric columns */
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: bold;
+}
+
+/* Add hover effect for rows */
+tr:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  /* Adds a subtle hover effect */
+}
+
+/* Style for images */
+img {
+  height: 30px;
+  /* Increased from 25px */
+  vertical-align: middle;
+  /* Ensures images align better within table cells */
+}
+
+/* Additional styling for the timing element */
+#timming {
+  font-size: 24px;
+  color: #ffeb3b;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-weight: 900;
+  margin-bottom: 10px;
+  text-align: center;
+}
