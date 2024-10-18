@@ -159,14 +159,16 @@ def getHeaderLightRanking():
     tab_entete = '''
     <body style="background-color: transparent; display: flex; justify-content: center; align-items: flex-start; height: 100vh; padding-top: 20px;">
         <table>
+            <colgroup>
+                <col style="width:40px" />
+                <col style="width:40px" />
+                <col style="width:300px" />
+                <col style="width:70px" />
+                <col style="width:90px" />
+            </colgroup>
             <thead>
-                <tr>
-                    <th>Pos</th>
-                    <th>N°</th>
-                    <th>Equipe</th> 
-                    <th>Tours</th>
-                    <th>Last</th>
-                </tr>
+                <!-- The header will be dynamically loaded here using AJAX -->
+                <tr><td>Loading...</td></tr>
             </thead>
             <tbody>
                 <!-- The table body will be dynamically loaded here using AJAX -->
@@ -193,22 +195,19 @@ def getPilotLightRanking(pilot, showBestLap=False, showPilotCountryFlag=False, e
         background-size: 100% 100%;\
         background-image: url(Ressources/{pilot.countryicon});"' if showPilotCountryFlag else style
     
-    output = f'<tr>\
+    return f'<tr>\
         <td {style}>{pilot.position+1}</td>\
         <td {NumberStyle}>{pilot.vehicle}</td>\
         <td {style}>{pilot.pilot.upper()}</td>\
         <td {style}>{pilot.laps}</td>\
         <td {lapTimeStyle}>{pilot.besttime_s if showBestLap else pilot.laptime_s:0.3f}</td>'
-    if extended:
-        output+= f'<td {style}>{pilot.besttime_s:0.3f}</td>\
-        <td {style}>{pilot.delaytimeprevious}</td>\
-        <td {style}>{pilot.forecast}</td>'
 
-    return output
-
-def generateLightTableHTML(pilots):
+def generateLightTableHTML(Serie, RaceTime, pilots):
     # Create the <thead> with basic structure (already done in the header)
-    thead = '''
+    thead = f'''
+    <tr>
+        <td colspan="9" style="height: 60px; font-size: 35px; color: royalblue font-family: Montserrat;">{RaceTime}</td>
+    </tr>
     <tr>
         <th>Pos</th>
         <th>N°</th>

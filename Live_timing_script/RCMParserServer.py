@@ -3,7 +3,6 @@ import requests
 import time
 from pathlib import Path
 import shutil
-from Websocket_MyRCM import *
 from PilotClasses import Round
 import generateHTML
 import argparse
@@ -97,7 +96,7 @@ def update_data():
     
     lightRankingHTMLBody = generateHTML.getHeaderLightRanking()
     latest_light_table_content = generateHTML.generateLightTableHTML(
-        pilots=currentRound.pilotList)
+        Serie=currentRound.round_pretty, RaceTime=RaceTime, pilots=currentRound.pilotList)
 
     try:
         # Save detailed HTML file (index.html)
