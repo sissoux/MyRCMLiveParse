@@ -21,13 +21,15 @@ class Scene():
 class OBS_Auto():
     ManualSceneList = {
         "V_Grille"        :Scene("V_Grille", 30,75, autoSwitch=False), 
-        "Serie_T_"           :Scene("Serie_T_", 30,75, autoSwitch=False), 
+        "Serie"           :Scene("Serie_T_", 30,75, autoSwitch=False), 
         "V_Vue_Plafond_A_30_45"           :Scene("V_Vue_Plafond_A_30_45", 30,75, autoSwitch=False), 
-        "Resultats"         :Scene("Resultats", 30,75, autoSwitch=False, Transition=transition.glissement)
+        "Resultats"         :Scene("Resultats_T_", 30,75, autoSwitch=False), 
+        "Comptage"         :Scene("V_Vue_Comptage_A_30_45", 30,75, autoSwitch=False)
     }
     autoSceneList = None
 
     AutoScenePattern =pattern = re.compile(r'_A_(\d+)_(\d+)')
+
 
 
     def __init__(self, IP, PassWord, Port=4455, debug=False, verbose=False) -> None:
@@ -75,9 +77,8 @@ class OBS_Auto():
             except ValueError:
                 print("Error while parsing scene durations, not adding scene to list.")
             
-    def updateScene(self, ForceScene=None, ForceDuration=30, Block=False):
+    def updateScene(self, ForceScene=None, ForceDuration=30):
         if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None and not self.temporaryBlock):
-            self.previousTime = time.time()
 
             if "_B_" in self.OBS.get_current_program_scene().scene_name:
                 print("Currently in blocking scene, no auto switch. Check again in 5s.")
@@ -87,11 +88,13 @@ class OBS_Auto():
             if "_T_" in self.OBS.get_current_program_scene().scene_name:
                 if not self.temporaryBlock:
                     self.temporaryBlock = True
-                    print("Currently in temporary blocking scene, no auto switch. Check again in 10s.")
-                    self.AutoSwitchDelay = 10
+                    print("Currently in temporary blocking scene, no auto switch.")
+                    # self.AutoSwitchDelay = 10
                     return False
                 else:
                     self.temporaryBlock = False
+
+            self.previousTime = time.time()
             
             if ForceScene is not None:
                 self.toScene = ForceScene

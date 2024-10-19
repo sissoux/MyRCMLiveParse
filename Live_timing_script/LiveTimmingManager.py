@@ -32,15 +32,16 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
         print(f"Failed to convert HTML to PNG: {e}")
 
 LocalOnly = True
-generateHTML_PNG = True
+generateHTML_PNG = False
 UseWebSocket = False
 
 LogInputData = False
 LogFileName = Path(f"RaceDataLog-{datetime.datetime.now().strftime("%d%b-%H%M%S")}.txt")
 
-AutomateOBS = False
+AutomateOBS = True
 
 ReloadDataframe = False
+PrevRaceTime = None
 
 if AutomateOBS:
     OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=False, debug=False)
@@ -86,9 +87,10 @@ newRound = False
 PreviousGroup = None
 GeneratedResults = False
 ShowedNewRound = False
+ShowedResults = True
 while (True):
 
-    if Tstart + 5 < time.time():
+    if Tstart + 0.5 < time.time():
         Tstart = time.time()
         index +=1
         try:
@@ -124,49 +126,54 @@ while (True):
             currentRound.ReloadDataFramesFromFile(LiveBasePath)
         newRound = True
         ShowedNewRound = False 
+        print(f"New round detected: {currentRound.category_pretty}-{currentRound.serie_pretty}")
 
         preGridScreenGen.generate(currentRound)
         preGridScreenGen.save(currentRound,Path(LiveBasePath, "GridImages"))
-
-        resultScreenGen.generate(currentRound)
-        resultScreenGen.save(currentRound,Path(LiveBasePath, "ResultImages"))
-           
+        
         gridOverlayGen.generate(currentRound)
-        exit()
 
     else:
         newRound = False
         currentRound.update(**js['EVENT'])
 
-        if AutomateOBS:
-            if not ShowedNewRound:
-                ShowedNewRound = OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie_T_"], ForceDuration = 10, Block = True)
-            match currentRound.RaceState:
-                case 4|5: #Manche terminée
-                    if True: #currentRound.RaceEnd:
-                        if not GeneratedResults:
-                            GeneratedResults = True
-                            generateMainResultImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
-                        print("Round is over, Displaying results")
-                        OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
-                case 2|0: #Départ en attente
-                    print("Waiting race to start. Showing grid.")
-                    countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
-                    if "finale" in currentRound.round_pretty.lower():
-                        OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], ForceDuration=15)
-                    else:
-                        OBS.updateScene()
-                case 1: #Manche en cours
-                    GeneratedResults = False
-                    OBS.updateScene()
-                case _:
-                    if True: #currentRound.RaceEnd:
-                        if not GeneratedResults:
-                            GeneratedResults = True
-                            generateMainRankingImage(currentRound, backgroundImagePath=Path(GdriveBasePath,"ScreenStartLine-CMN.png"), buggyImagePath=Path(GdriveBasePath,"Buggy.png"), outputPath=Path(LiveBasePath, "MainRanking.png"))
-                        print("Round is over, Displaying results")
-                        OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 15)
+    if AutomateOBS:
+        match currentRound.RaceState:
+            case 4|5: #Manche terminée
+                if True: #currentRound.RaceEnd:
+                    if not GeneratedResults:
+                        print("Generating results")
+                        GeneratedResults = True
+                        resultScreenGen.generate(currentRound)
+                        resultScreenGen.save(currentRound,Path(LiveBasePath, "ResultImages"))
+                        ShowedResults = False
+            case 2: #Départ en attente
+                countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
+                if False:#"finale" in currentRound.round_pretty.lower():
+                    OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], ForceDuration=15)
+                else:
+                    OBS.updateScene(ForceScene=OBS.ManualSceneList["Comptage"], ForceDuration = 4)
 
+            case 1: #Manche en cours
+                GeneratedResults = False
+                ShowedNewRound = True #Do not show grid if race is ongoing
+            case 0: #Manche terminée
+                pass
+            case _:
+                pass
+
+        if not ShowedResults:
+            print("Displaying results")
+            ShowedResults = OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 4)
+        if not ShowedNewRound:
+            print("Showing grid.")
+            ShowedNewRound = OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie"], ForceDuration = 4)
+
+
+
+        OBS.updateScene()
+
+        
     #add regular dataframeSave
     autoSaveDF=False
     if autoSaveDF:
@@ -176,7 +183,9 @@ while (True):
 
     # Gestion du TEMPS Restant
     RaceTime = currentRound.getRaceTime_pretty()
-    print(f"RaceTime = {RaceTime}")
+    if RaceTime != PrevRaceTime:
+        PrevRaceTime=RaceTime
+        print(f"RaceTime = {RaceTime}")
  
     
     pilotes = []
