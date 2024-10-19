@@ -161,8 +161,8 @@ class ScreenGenerator:
 
 
 class GridOverlayScreenGen(ScreenGenerator):
-    NameStyle =     ScreenGenerator.TextStyle(font=ScreenGenerator.Montserrat_Black_file, color=ImageColor.getrgb("white"), size=18)
-    LastNameStyle = ScreenGenerator.TextStyle(font=ScreenGenerator.Montserrat_Black_file, color=ImageColor.getrgb("white"), size=15)
+    NameStyle =     ScreenGenerator.TextStyle(font=ScreenGenerator.Montserrat_Black_file, color=ImageColor.getrgb("white"), size=17)
+    LastNameStyle = ScreenGenerator.TextStyle(font=ScreenGenerator.Montserrat_Black_file, color=ImageColor.getrgb("white"), size=14)
     
     StartGridCoordinates=[
         (250,900),#1
@@ -213,7 +213,7 @@ class GridOverlayScreenGen(ScreenGenerator):
             try:
                 x, y = self.StartGridCoordinates[index]
 
-                FirstName = f"{index+1} {pilot.FirstName[:12].upper()}"
+                FirstName = f"{index+1} {pilot.FirstName[:13].upper()}"
                 LastName = f"    {pilot.LastName[:18]}"
 
                 # Get the bounding box for the first and second lines of text
@@ -226,7 +226,7 @@ class GridOverlayScreenGen(ScreenGenerator):
 
                 # Draw a rounded rectangle with a 15px corner radius
                 drawImg.rounded_rectangle([x - margin, y - margin, x + rect_width, y + rect_height],
-                                        fill=ImageColor.getrgb("#1a3459"), outline=ImageColor.getrgb("#60c5c7"), width=2, radius=10)
+                                        fill=ImageColor.getrgb("#c061b2"), outline=ImageColor.getrgb("#23a963"), width=2, radius=10)
 
 
                 # Draw the first and second lines of text inside the rectangle
