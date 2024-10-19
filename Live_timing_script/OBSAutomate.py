@@ -31,7 +31,6 @@ class OBS_Auto():
     AutoScenePattern =pattern = re.compile(r'_A_(\d+)_(\d+)')
 
 
-
     def __init__(self, IP, PassWord, Port=4455, debug=False, verbose=False) -> None:
         self.wsHhost = IP
         self.wsPort = Port
@@ -53,6 +52,10 @@ class OBS_Auto():
         self.AutoSwitchDelay = 0
         self.fromScene = None
         self.temporaryBlock = False
+        self.CurrentTempBlockingScene = None
+        self.blockingTime = 0
+        self.previousBlockingTime = 0
+        self.isBlocked = False
 
     def setScene(self, scene:Scene):
         try:
@@ -77,22 +80,37 @@ class OBS_Auto():
             except ValueError:
                 print("Error while parsing scene durations, not adding scene to list.")
             
-    def updateScene(self, ForceScene=None, ForceDuration=30):
-        if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None and not self.temporaryBlock):
+    def SetBlockingScene(self, Scene:Scene, Duration=10, Force=False):
+        if (Force or not self.isBlocked) and not ("_B_" in self.OBS.get_current_program_scene().scene_name):
+            self.previousBlockingTime = time.time()
+            self.toScene = Scene
+            self.fromScene = self.toScene
+            self.isBlocked = True
+            self.blockingTime = Duration
+            if not self.debug:
+                self.setScene(self.toScene)
+            if self.verbose:
+                print(f"Forcing {Scene.name}. Locking autoswitch for {Duration}s.")
+        return self.isBlocked
 
-            if "_B_" in self.OBS.get_current_program_scene().scene_name:
-                print("Currently in blocking scene, no auto switch. Check again in 5s.")
+    def updateBlockingState(self):
+        # print(f"{'Blocked' if self.isBlocked else 'free'} - {time.time() - self.previousBlockingTime:0.2f} > {self.blockingTime}?")
+        if (time.time() - self.previousBlockingTime > self.blockingTime) and self.isBlocked:
+            self.isBlocked = False
+            # self.AutoSwitchDelay = 2
+            # time.time() - self.previousTime
+            if self.verbose:
+                print("Releasing autoswitch")
+
+    def updateScene(self, ForceScene=None, ForceDuration=30):
+        self.updateBlockingState()
+        if (time.time() - self.previousTime > self.AutoSwitchDelay and self.autoSwitchEnabled) or (ForceScene is not None and not self.temporaryBlock):
+            
+            if "_B_" in self.OBS.get_current_program_scene().scene_name or self.isBlocked:
+                if self.verbose:
+                    print("Currently in blocking scene, no auto switch. AutoCheck again in 5s.")
                 self.AutoSwitchDelay = 5
                 return False
-            
-            if "_T_" in self.OBS.get_current_program_scene().scene_name:
-                if not self.temporaryBlock:
-                    self.temporaryBlock = True
-                    print("Currently in temporary blocking scene, no auto switch.")
-                    # self.AutoSwitchDelay = 10
-                    return False
-                else:
-                    self.temporaryBlock = False
 
             self.previousTime = time.time()
             
@@ -113,6 +131,3 @@ class OBS_Auto():
             if self.verbose:
                 print(f"Switching from {self.fromScene.name} to {self.toScene.name}. Next switch in {self.AutoSwitchDelay}s.")
             return True
-
-    def showStatistics(self, ForceDuration=30):
-        self.updateScene(ForceScene=self.ManualSceneList["StatisticsDisplay"], ForceDuration=ForceDuration)

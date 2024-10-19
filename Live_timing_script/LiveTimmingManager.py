@@ -44,7 +44,7 @@ ReloadDataframe = False
 PrevRaceTime = None
 
 if AutomateOBS:
-    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=False, debug=False)
+    OBS = OBS_Auto(IP = 'localhost', Port=4455, PassWord=secret.OBSWebSocketPW, verbose=True, debug=False)
     
 
 PublisherServer_IP = "127.0.0.1"
@@ -148,11 +148,12 @@ while (True):
                         resultScreenGen.save(currentRound,Path(LiveBasePath, "ResultImages"))
                         ShowedResults = False
             case 2: #Départ en attente
-                countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
-                if False:#"finale" in currentRound.round_pretty.lower():
-                    OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], ForceDuration=15)
-                else:
-                    OBS.updateScene(ForceScene=OBS.ManualSceneList["Comptage"], ForceDuration = 4)
+                if ShowedNewRound:
+                    countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
+                    if "finale" in currentRound.round_pretty.lower():
+                        OBS.SetBlockingScene(Scene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], Duration=2)
+                    else:
+                        OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Comptage"], Duration = 2)
 
             case 1: #Manche en cours
                 GeneratedResults = False
@@ -164,10 +165,10 @@ while (True):
 
         if not ShowedResults:
             print("Displaying results")
-            ShowedResults = OBS.updateScene(ForceScene=OBS.ManualSceneList["Resultats"], ForceDuration = 4)
+            ShowedResults = OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Resultats"], Duration = 4)
         if not ShowedNewRound:
             print("Showing grid.")
-            ShowedNewRound = OBS.updateScene(ForceScene=OBS.ManualSceneList["Serie"], ForceDuration = 4)
+            ShowedNewRound = OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Serie"], Duration = 4)
 
 
 
