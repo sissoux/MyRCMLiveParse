@@ -158,7 +158,7 @@ def getHeaderLightRanking():
     # Body tag with centered table style
     tab_entete = '''
     <body style="background-color: transparent; display: flex; justify-content: center; align-items: flex-start; height: 100vh; padding-top: 20px;">
-        <table style="border-collapse: collapse; width: 600px; max-width: 100%; text-align: center;">
+        <table style="width: 600px; max-width: 100%; text-align: center;">
             <colgroup>
                 <col style="width:40px" />
                 <col style="width:40px" />
