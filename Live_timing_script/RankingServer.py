@@ -34,6 +34,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 # Set up the server
 PORT = 8080
+
 with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
     print(f"Serving HTTP on port {PORT} from {web_dir}")
     try:

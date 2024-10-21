@@ -29,7 +29,7 @@ table {
   border-collapse: separate;
   background-color: rgba(23, 15, 32, 0.85);
   /* Semi-transparent background */
-  border-spacing: 2px 2px;
+  border-spacing: 2px 10px;
   border: 7px solid #c5dceb;
   margin: 0 auto;
   /* Center the table horizontally */
