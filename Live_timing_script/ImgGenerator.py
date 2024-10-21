@@ -432,7 +432,7 @@ class ResultScreenGen(ScreenGenerator):
             try:            
                 self.draw_centered_text(drawImg, (baseX, baseY), pilot.LastName[:13].upper(), font=self.PodiumNameStyle.font, fill=self.PodiumNameStyle.color)
                 self.draw_centered_text(drawImg, (baseX, baseY+42), pilot.FirstName[:15].upper(), font=self.PodiumLastNameStyle.font, fill=self.PodiumLastNameStyle.color)
-                self.draw_centered_text(drawImg, (baseX, baseY+78), f"{pilot.laps} LAPS / BEST : {pilot.besttime_s:0.2f}s", font=self.PodiumStatsStyle.font, fill=self.PodiumStatsStyle.color)
+                self.draw_centered_text(drawImg, (baseX, baseY+78), f"BEST : {pilot.besttime_s:0.2f}s", font=self.PodiumStatsStyle.font, fill=self.PodiumStatsStyle.color)
             except Exception as e:
                 print(e)
         
@@ -442,7 +442,7 @@ class ResultScreenGen(ScreenGenerator):
             
             try:
                 self.draw_left_middle_text(drawImg, (baseX, baseY), self.trim_text(pilot.pilot, 18).upper(), font=self.ListNameStyle.font, fill=self.ListNameStyle.color)
-                self.draw_right_middle_text(drawImg, (1700, baseY+4), f"{pilot.laps} LAPS / BEST : {pilot.besttime_s:0.2f}s", font=self.PodiumStatsStyle.font, fill=self.PodiumStatsStyle.color)
+                self.draw_right_middle_text(drawImg, (1700, baseY+4), f"BEST : {float(pilot.besttime_s):0.2f}s", font=self.PodiumStatsStyle.font, fill=self.PodiumStatsStyle.color)
             except Exception as e:
                 print(e)
             
