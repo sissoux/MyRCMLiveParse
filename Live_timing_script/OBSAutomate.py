@@ -56,6 +56,7 @@ class OBS_Auto():
         self.blockingTime = 0
         self.previousBlockingTime = 0
         self.isBlocked = False
+        self.previousBlockingTime_temp=0
 
     def setScene(self, scene:Scene):
         try:
@@ -81,6 +82,14 @@ class OBS_Auto():
                 print("Error while parsing scene durations, not adding scene to list.")
             
     def SetBlockingScene(self, Scene:Scene, Duration=10, Force=False):
+        # if "Resultats" in self.OBS.get_current_program_scene().scene_name:
+        #     self.previousBlockingTime = time.time()
+        #     self.toScene = Scene
+        #     self.fromScene = self.toScene
+        #     self.isBlocked = True
+        #     self.blockingTime = 5
+        #     return self.isBlocked
+        
         if (Force or not self.isBlocked) and not ("_B_" in self.OBS.get_current_program_scene().scene_name):
             self.previousBlockingTime = time.time()
             self.toScene = Scene
@@ -95,6 +104,11 @@ class OBS_Auto():
 
     def updateBlockingState(self):
         # print(f"{'Blocked' if self.isBlocked else 'free'} - {time.time() - self.previousBlockingTime:0.2f} > {self.blockingTime}?")
+        # if ("_B_" in self.OBS.get_current_program_scene().scene_name):
+        #     print(f"Remaining Time in blocking{self.blockingTime-time.time() - self.previousBlockingTime}")
+        #     self.previousBlockingTime = self.previousBlockingTime+(time.time() - self.previousBlockingTime_temp)
+        #     self.previousBlockingTime_temp = time.time() - self.previousBlockingTime
+
         if (time.time() - self.previousBlockingTime > self.blockingTime) and self.isBlocked:
             self.isBlocked = False
             # self.AutoSwitchDelay = 2
@@ -119,7 +133,7 @@ class OBS_Auto():
                 self.AutoSwitchDelay=ForceDuration
             else:
                 self.updateAutoSceneList(self.OBS.get_scene_list().scenes)
-                self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
+                self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList))-1]
                 while (not self.toScene.allowedAutoSwitch) and self.fromScene == self.toScene:
                     self.toScene = self.autoSceneList[random.randint(1*self.preventPodium,len(self.autoSceneList)-1)]
                 self.AutoSwitchDelay = self.toScene.getDelay()

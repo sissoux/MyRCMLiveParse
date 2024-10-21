@@ -31,11 +31,11 @@ def htmlToPng(html_string=None, html_file=None, css_file="Style.css", FilePath=N
     except Exception as e:
         print(f"Failed to convert HTML to PNG: {e}")
 
-LocalOnly = True
+LocalOnly = False
 generateHTML_PNG = False
 UseWebSocket = False
 
-LogInputData = False
+LogInputData = True
 LogFileName = Path(f"RaceDataLog-{datetime.datetime.now().strftime("%d%b-%H%M%S")}.txt")
 
 AutomateOBS = True
@@ -147,13 +147,14 @@ while (True):
                         resultScreenGen.generate(currentRound)
                         resultScreenGen.save(currentRound,Path(LiveBasePath, "ResultImages"))
                         ShowedResults = False
-            case 2: #Départ en attente
-                if ShowedNewRound:
-                    countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
-                    if "finale" in currentRound.round_pretty.lower():
-                        OBS.SetBlockingScene(Scene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], Duration=2)
-                    else:
-                        OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Comptage"], Duration = 2)
+            case 2|0: #Départ en attente
+                if currentRound.RaceEnd ==0:
+                    if ShowedNewRound:
+                        countdown_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(currentRound.countdown.split(":"))))
+                        if "finale" in currentRound.round_pretty.lower():
+                            OBS.updateScene(ForceScene=OBS.ManualSceneList["V_Grille" if (5 <= countdown_seconds <= 30) else "V_Vue_Plafond_A_30_45"], ForceDuration=2)
+                        else:
+                            OBS.updateScene(ForceScene=OBS.ManualSceneList["Comptage"], ForceDuration = 2)
 
             case 1: #Manche en cours
                 GeneratedResults = False
@@ -165,10 +166,10 @@ while (True):
 
         if not ShowedResults:
             print("Displaying results")
-            ShowedResults = OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Resultats"], Duration = 4)
+            ShowedResults = OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Resultats"], Duration = 10)
         if not ShowedNewRound:
             print("Showing grid.")
-            ShowedNewRound = OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Serie"], Duration = 4)
+            ShowedNewRound = OBS.SetBlockingScene(Scene=OBS.ManualSceneList["Serie"], Duration = 10)
 
 
 
